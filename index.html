@@ -1523,6 +1523,22 @@ function submitFinalBooking() {
     return;
   }
 
+  // LÓGICA DE ASIGNACIÓN ALEATORIA DE PROFESIONAL
+  let assignedBarber = selectedPro.name;
+
+  if (assignedBarber === "Sin preferencia de profesional") {
+    // Filtrar los profesionales reales de la sucursal seleccionada
+    const realPros = barbersByBranch[selectedBranch].filter(
+      p => p.name !== "Sin preferencia de profesional"
+    );
+
+    // Seleccionar uno al azar
+    if (realPros.length > 0) {
+      const randomIndex = Math.floor(Math.random() * realPros.length);
+      assignedBarber = realPros[randomIndex].name;
+    }
+  }
+
   const branchName = selectedBranch === "sucursal1" ? "Sucursal Centro" : "Sucursal Norte";
   const serviceNames = selectedServices.map(s => s.name).join(" + ");
   const totalPrice = selectedServices.reduce((a,b) => a + b.price, 0);
@@ -1530,7 +1546,7 @@ function submitFinalBooking() {
   const bookingData = {
     branch: selectedBranch,
     branchName: branchName,
-    barber: selectedPro.name,
+    barber: assignedBarber, // <--- Guarda el profesional real asignado
     service: serviceNames,
     totalPrice: totalPrice,
     dateStr: selectedDateStr,
@@ -1542,12 +1558,17 @@ function submitFinalBooking() {
   };
 
   db.ref("turnos_demo").push().set(bookingData, (err) => {
+    if (err) {
+      alert("Ocurrió un error al guardar la reserva. Intentá nuevamente.");
+      return;
+    }
+
     const msg = encodeURIComponent(
       `📅 *CONFIRMACIÓN DE TURNO - BARBER DEMO*\n\n` +
       `👤 *Cliente:* ${name}\n` +
       `📱 *Teléfono:* ${phone}\n` +
       `📍 *Sucursal:* ${branchName}\n` +
-      `👤 *Atendido por:* ${selectedPro.name}\n` +
+      `👤 *Atendido por:* ${assignedBarber}\n` +
       `🛠️ *Servicio:* ${serviceNames}\n` +
       `📅 *Fecha:* ${selectedDateLabel}\n` +
       `⏰ *Hora:* ${selectedTimeSlot} hs\n` +
