@@ -453,6 +453,8 @@ header{
   .time-slots-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:600px){
+  .nav-actions{gap:6px}
+  .nav-actions .btn-outline{padding:9px 10px;font-size:10px}
   header{padding:13px 16px}
   .brand-logo{font-size:15px}
   .hero-section{margin-top:62px}
@@ -598,9 +600,8 @@ header{
     <!-- Cambio de Nombre a BARBER DEMO -->
     <div class="brand-logo" onclick="goToStep(1)">BARBER <span>DEMO</span></div>
     <div class="nav-actions">
-      <button class="btn-outline" onclick="openModal('modal-location')">
-        📍 UBICACIÓN
-      </button>
+      <button class="btn-outline" onclick="openModal('modal-location')">⌖ Sucursales</button>
+      <button class="btn-outline" onclick="openReception()">▣ Recepción</button>
     </div>
   </div>
 </header>
