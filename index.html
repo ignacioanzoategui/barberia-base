@@ -1,9 +1,15 @@
-<!doctype html>
+# Let's generate the updated single-file code for index.html with:
+# 1. Generic/White-label branding (e.g. "LUMEN STUDIO - Barbería & Estilo", title "Tu estilo, agendado en segundos.")
+# 2. No "Ver servicios" button on the hero/landing page (only direct action button to reserve/book).
+# 3. Completely generic names for professionals (e.g. "Profesional 1", "Profesional 2", "Especialista A", "Especialista B") and branches ("Sucursal Norte", "Sucursal Sur").
+# 4. Clean, white-label design ready to present to any salon/barbershop.
+
+html_code = """<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ZENIN STUDIO | Barbería & Turnos</title>
+<title>SISTEMA DE TURNOS | Barbería & Estética</title>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -112,7 +118,7 @@ header {
 /* STEP 1: LANDING HERO */
 .hero-section {
   max-width: 900px;
-  margin: 60px auto 40px;
+  margin: 70px auto 40px;
   text-align: center;
   padding: 0 20px;
 }
@@ -126,7 +132,7 @@ header {
 }
 
 .hero-title {
-  font-size: clamp(34px, 5.5vw, 62px);
+  font-size: clamp(34px, 5.5vw, 60px);
   font-weight: 400;
   line-height: 1.15;
   margin-bottom: 24px;
@@ -151,14 +157,13 @@ header {
   justify-content: center;
   gap: 16px;
   margin-bottom: 50px;
-  flex-wrap: wrap;
 }
 
 .btn-hero-main {
   background: var(--white);
   color: #000;
   border: none;
-  padding: 16px 36px;
+  padding: 16px 40px;
   border-radius: 30px;
   font-size: 16px;
   font-weight: 700;
@@ -166,22 +171,10 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: all 0.2s;
 }
 
-.btn-hero-main:hover { background: #e5e5e5; }
-
-.btn-hero-sec {
-  background: var(--card-bg);
-  color: var(--text);
-  border: 1px solid var(--line);
-  padding: 16px 32px;
-  border-radius: 30px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-hero-sec:hover { border-color: #555; }
+.btn-hero-main:hover { background: #e5e5e5; transform: translateY(-2px); }
 
 .hero-features {
   display: flex;
@@ -626,8 +619,6 @@ header {
   overflow: hidden;
 }
 
-.pro-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
 .pro-info h4 { font-size: 15px; font-weight: 700; }
 .pro-info p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
 
@@ -675,7 +666,7 @@ header {
 <!-- HEADER NAVBAR -->
 <header>
   <div class="nav-container">
-    <div class="brand-logo" onclick="goToStep(1)">ZENIN <span>STUDIO</span></div>
+    <div class="brand-logo" onclick="goToStep(1)">LUMEN <span>STUDIO</span></div>
     <div class="nav-actions">
       <button class="btn-outline" onclick="openModal('modal-location')">
         📍 UBICACIÓN
@@ -688,19 +679,18 @@ header {
 <!-- STEP 1: LANDING PAGE VIEW -->
 <div id="step-1" class="view active">
   <div class="hero-section">
-    <div class="hero-subtitle-tag">— BARBERÍA · BUENOS AIRES —</div>
-    <h1 class="hero-title">El corte indicado,<br>con el <i>profesional</i> indicado.</h1>
-    <p class="hero-desc">Cada uno de nuestros barberos tiene su especialidad. Elegí quién te atiende, reservá tu horario y dejá que potenciemos tu imagen.</p>
+    <div class="hero-subtitle-tag">— SISTEMA DE RESERVAS & AGENDA —</div>
+    <h1 class="hero-title">Tu turno agendado,<br>en <i>pocos segundos</i>.</h1>
+    <p class="hero-desc">Elegí la sede, elegí tu profesional de confianza y reservá tu horario al instante sin complicaciones.</p>
     
     <div class="hero-ctas">
       <button class="btn-hero-main" onclick="goToStep(2)">Reservar turno ➔</button>
-      <button class="btn-hero-sec" onclick="goToStep(2)">Ver servicios</button>
     </div>
 
     <div class="hero-features">
-      <span>★ 11 especialistas</span>
-      <span>⏰ Reserva en 1 minuto</span>
-      <span>✓ Confirmación al instante por WhatsApp</span>
+      <span>★ Profesionales calificados</span>
+      <span>⏰ Gestión de citas 24/7</span>
+      <span>✓ Confirmación automática por WhatsApp</span>
     </div>
   </div>
 </div>
@@ -735,50 +725,50 @@ header {
     <div id="step-2" class="view">
       <div class="section-title-box">
         <h2>Seleccioná tus servicios</h2>
-        <p>Elegí uno o más servicios para continuar con tu reserva.</p>
+        <p>Elegí una o más opciones para continuar con tu cita.</p>
       </div>
 
       <div class="service-item">
         <div class="service-info">
-          <h3>Servicio completo</h3>
-          <p>⏱ 40 minutos · Asesoramiento + Corte + Lavado + Peinado</p>
+          <h3>Corte & Estilo General</h3>
+          <p>⏱ 40 minutos · Asesoramiento personalizado + Lavado y peinado</p>
         </div>
         <div class="service-price-btn">
-          <div class="service-price">$ 20.000</div>
-          <button class="btn-add" onclick="toggleService('Servicio completo', 20000, 40, this)">+</button>
-        </div>
-      </div>
-
-      <div class="service-item">
-        <div class="service-info">
-          <h3>Servicio completo + barba</h3>
-          <p>⏱ 50 minutos · Corte de cabello + Arreglo y perfilado de barba con toalla caliente</p>
-        </div>
-        <div class="service-price-btn">
-          <div class="service-price">$ 25.000</div>
-          <button class="btn-add" onclick="toggleService('Servicio completo + barba', 25000, 50, this)">+</button>
+          <div class="service-price">$ 18.000</div>
+          <button class="btn-add" onclick="toggleService('Corte & Estilo General', 18000, 40, this)">+</button>
         </div>
       </div>
 
       <div class="service-item">
         <div class="service-info">
-          <h3>Servicio Completo de Cabello Largo</h3>
-          <p>⏱ 60 minutos · Corte a tijera, texturizado y modelado para melenas</p>
+          <h3>Servicio Combo Premium</h3>
+          <p>⏱ 50 minutos · Corte de cabello + Perfilado y tratamiento facial express</p>
         </div>
         <div class="service-price-btn">
-          <div class="service-price">$ 30.000</div>
-          <button class="btn-add" onclick="toggleService('Servicio Cabello Largo', 30000, 60, this)">+</button>
+          <div class="service-price">$ 24.000</div>
+          <button class="btn-add" onclick="toggleService('Servicio Combo Premium', 24000, 50, this)">+</button>
         </div>
       </div>
 
       <div class="service-item">
         <div class="service-info">
-          <h3>Perfilado y Arreglo de Barba</h3>
-          <p>⏱ 30 minutos · Ritual de barba completo</p>
+          <h3>Tratamiento Capilar Integral</h3>
+          <p>⏱ 60 minutos · Corte especializado, nutrimascarilla y modelado</p>
         </div>
         <div class="service-price-btn">
-          <div class="service-price">$ 15.000</div>
-          <button class="btn-add" onclick="toggleService('Arreglo de Barba', 15000, 30, this)">+</button>
+          <div class="service-price">$ 28.000</div>
+          <button class="btn-add" onclick="toggleService('Tratamiento Capilar Integral', 28000, 60, this)">+</button>
+        </div>
+      </div>
+
+      <div class="service-item">
+        <div class="service-info">
+          <h3>Diseño y Perfilado</h3>
+          <p>⏱ 30 minutos · Ritual completo de perfilado y definición</p>
+        </div>
+        <div class="service-price-btn">
+          <div class="service-price">$ 12.000</div>
+          <button class="btn-add" onclick="toggleService('Diseño y Perfilado', 12000, 30, this)">+</button>
         </div>
       </div>
     </div>
@@ -786,16 +776,16 @@ header {
     <!-- STEP 3: PROFESIONAL Y SUCURSAL -->
     <div id="step-3" class="view">
       <div class="section-title-box">
-        <h2>Elige tu profesional y sucursal</h2>
-        <p>Seleccioná en qué sucursal querés atenderte y quién te asistirá.</p>
+        <h2>Elige profesional y sucursal</h2>
+        <p>Seleccioná la sede que prefieras y quién te va a atender.</p>
       </div>
 
       <div class="branch-selector-box">
         <div class="form-group" style="margin-bottom:0;">
           <label for="branch-select">Sucursal:</label>
           <select id="branch-select" onchange="onBranchChange()">
-            <option value="sucursal1">Sucursal Centro (Av. Principal 123)</option>
-            <option value="sucursal2">Sucursal Shopping (Local 45)</option>
+            <option value="sucursal1">Sucursal Centro</option>
+            <option value="sucursal2">Sucursal Norte</option>
           </select>
         </div>
       </div>
@@ -806,7 +796,7 @@ header {
           <div style="display:flex; align-items:center; gap:12px;">
             <div id="selected-pro-avatar" class="pro-avatar">⚡</div>
             <div>
-              <h4 id="selected-pro-name" style="font-size:16px; font-weight:700;">Cualquier profesional</h4>
+              <h4 id="selected-pro-name" style="font-size:16px; font-weight:700;">Sin preferencia de profesional</h4>
               <p id="selected-pro-sub" style="font-size:13px; color:var(--text-muted);">Asignación según disponibilidad</p>
             </div>
           </div>
@@ -819,7 +809,7 @@ header {
     <div id="step-4" class="view">
       <div class="section-title-box">
         <h2>Selecciona fecha y hora</h2>
-        <p>Elegí el día y el horario disponible que te quede más cómodo.</p>
+        <p>Elegí el día y el horario libre que mejor se adapte a vos.</p>
       </div>
 
       <!-- HORIZONTAL CALENDAR -->
@@ -846,17 +836,17 @@ header {
   <!-- RIGHT COLUMN SUMMARY CARD -->
   <div class="summary-card">
     <div class="shop-brand">
-      <div class="shop-logo">Z</div>
+      <div class="shop-logo">L</div>
       <div class="shop-details">
-        <h4>ZENIN STUDIO</h4>
-        <p id="summary-branch-label">Sucursal Centro, Buenos Aires</p>
+        <h4>LUMEN STUDIO</h4>
+        <p id="summary-branch-label">Sucursal Centro</p>
       </div>
     </div>
 
     <div id="empty-cart-box" class="empty-cart">
       <div class="empty-cart-icon">🛍️</div>
       <p style="font-size:14px; font-weight:600;">Tu carrito está vacío</p>
-      <p style="font-size:12px; margin-top:4px;">Selecciona servicios para continuar</p>
+      <p style="font-size:12px; margin-top:4px;">Selecciona opciones para continuar</p>
     </div>
 
     <div id="summary-details-box" class="summary-details-box">
@@ -864,7 +854,7 @@ header {
       
       <div id="summary-pro-line" class="summary-item-line" style="border-top:1px dashed var(--line); padding-top:10px; margin-top:10px; display:none;">
         <div>
-          <div class="name" id="sum-pro-name">Con cualquier profesional</div>
+          <div class="name" id="sum-pro-name">Sin preferencia de profesional</div>
           <div class="meta" id="sum-date-time-line">Pendiente de fecha</div>
         </div>
       </div>
@@ -885,19 +875,19 @@ header {
 <div id="modal-location" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
-      <h3>Nuestras Sucursales</h3>
+      <h3>Sucursales Disponibles</h3>
       <button class="btn-close-modal" onclick="closeModal('modal-location')">✕</button>
     </div>
     <div style="display:flex; flex-direction:column; gap:16px;">
       <div style="background:#181818; padding:16px; border-radius:12px; border:1px solid var(--line);">
         <h4 style="font-size:16px; font-weight:700;">Sucursal Centro</h4>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Av. Principal 123, Buenos Aires</p>
-        <a href="https://maps.google.com/?q=Av.+Principal+123+Buenos+Aires" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Abrir en Google Maps 🗺️</a>
+        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Ubicación céntrica, Zona Comercial</p>
+        <a href="https://maps.google.com" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Ver en Mapa 🗺️</a>
       </div>
       <div style="background:#181818; padding:16px; border-radius:12px; border:1px solid var(--line);">
-        <h4 style="font-size:16px; font-weight:700;">Sucursal Shopping</h4>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Local 45, Paseo de las Compras</p>
-        <a href="https://maps.google.com/?q=Paseo+de+las+Compras+Buenos+Aires" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Abrir en Google Maps 🗺️</a>
+        <h4 style="font-size:16px; font-weight:700;">Sucursal Norte</h4>
+        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Ubicación Norte, Paseo Gastronómico</p>
+        <a href="https://maps.google.com" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Ver en Mapa 🗺️</a>
       </div>
     </div>
   </div>
@@ -907,7 +897,7 @@ header {
 <div id="modal-professionals" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
-      <h3>Elegir profesional</h3>
+      <h3>Elegir Profesional</h3>
       <button class="btn-close-modal" onclick="closeModal('modal-professionals')">✕</button>
     </div>
     <div id="professionals-modal-list">
@@ -920,19 +910,19 @@ header {
 <div id="modal-client-form" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
-      <h3>Confirmar Reserva</h3>
+      <h3>Confirmar Cita</h3>
       <button class="btn-close-modal" onclick="closeModal('modal-client-form')">✕</button>
     </div>
-    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Ingresá tus datos para agendar el turno y enviar la confirmación a WhatsApp.</p>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Ingresá tus datos para guardar el turno y generar la confirmación.</p>
     
     <div class="form-group">
       <label for="client-name">Nombre y Apellido:</label>
-      <input id="client-name" placeholder="Ej. Gonzalo Pérez">
+      <input id="client-name" placeholder="Ej. Juan Pérez">
     </div>
 
     <div class="form-group">
       <label for="client-phone">Teléfono / WhatsApp:</label>
-      <input id="client-phone" placeholder="Ej. 11 5555 5555">
+      <input id="client-phone" placeholder="Ej. 11 1234 5678">
     </div>
 
     <button class="btn-continue" onclick="submitFinalBooking()" style="margin-top:10px;">Confirmar y Enviar a WhatsApp 📱</button>
@@ -940,7 +930,7 @@ header {
 </div>
 
 <script>
-// CONFIGURACIÓN DE FIREBASE (Reemplazar con tus claves)
+// CONFIGURACIÓN DE FIREBASE (Servidor Demo / Reemplazable)
 const firebaseConfig = {
   apiKey: "AIzaSyBX7l9fm8jvUUys2osiYquN0B5JZLgd2DI",
   authDomain: "barberia-demo-22bb4.firebaseapp.com",
@@ -951,29 +941,24 @@ const firebaseConfig = {
   appId: "1:360287665229:web:b0c48af17c5dbec7fdb004",
   measurementId: "G-T2Y0BLV337"
 };
-
-const BARBER_PHONE = "5491144058910";
+const BARBER_PHONE = "5491100000000";
 
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// DATOS Y ESTADO DE LA APLICACIÓN
+// DATOS GENÉRICOS DE PROFESIONALES POR SUCURSAL
 const barbersByBranch = {
   sucursal1: [
-    { name: "Cualquier profesional", sub: "Asignación rápida", avatar: "⚡" },
-    { name: "Jesus Calo", sub: "Especialista en degradados", avatar: "👨🏻" },
-    { name: "Alex Wacker", sub: "Experto en tijera & melenas", avatar: "🧔🏻" },
-    { name: "Uriel Ibana", sub: "Especialista en barba", avatar: "👨🏽" },
-    { name: "Uriel Moraiz", sub: "Cortes urbanos & freestyle", avatar: "👨🏼" },
-    { name: "Matias", sub: "Barbero Senior", avatar: "💈" }
+    { name: "Sin preferencia de profesional", sub: "Asignación más rápida", avatar: "⚡" },
+    { name: "Especialista A", sub: "Cortes modernos & fade", avatar: "✂️" },
+    { name: "Especialista B", sub: "Estilo clásico y tijera", avatar: "💈" },
+    { name: "Especialista C", sub: "Tratamientos y estética", avatar: "👤" }
   ],
   sucursal2: [
-    { name: "Cualquier profesional", sub: "Asignación rápida", avatar: "⚡" },
-    { name: "Agustín", sub: "Especialista en barba & perfilado", avatar: "🧔🏻" },
-    { name: "Nicolás", sub: "Cortes clásicos & tijera", avatar: "👨🏻" },
-    { name: "Santiago", sub: "Fade & Diseños", avatar: "👨🏽" },
-    { name: "Benjamín", sub: "Barbero Senior", avatar: "💈" }
+    { name: "Sin preferencia de profesional", sub: "Asignación más rápida", avatar: "⚡" },
+    { name: "Especialista D", sub: "Diseño & Perfilado", avatar: "✂️" },
+    { name: "Especialista E", sub: "Estilo urbano & tendencias", avatar: "💈" }
   ]
 };
 
@@ -988,8 +973,8 @@ let selectedDateLabel = "";
 let selectedTimeSlot = "";
 let existingBookings = [];
 
-// Escuchar cambios de turnos en Firebase en tiempo real
-db.ref("turnos_barberia").on("value", (snapshot) => {
+// Escuchar cambios de turnos en tiempo real
+db.ref("turnos_demo").on("value", (snapshot) => {
   const data = snapshot.val();
   existingBookings = [];
   if(data) {
@@ -1002,7 +987,6 @@ db.ref("turnos_barberia").on("value", (snapshot) => {
 function goToStep(stepNum) {
   currentStep = stepNum;
 
-  // Modificar visibilidad de pantallas
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   
   if(stepNum === 1) {
@@ -1014,7 +998,6 @@ function goToStep(stepNum) {
     document.getElementById('wizard-container').style.display = 'grid';
     document.getElementById(`step-${stepNum}`).classList.add('active');
 
-    // Actualizar Badges
     for(let i = 2; i <= 4; i++) {
       const b = document.getElementById(`badge-step-${i}`);
       b.classList.remove('active', 'completed');
@@ -1057,7 +1040,7 @@ function onBranchChange() {
   selectedBranch = document.getElementById('branch-select').value;
   selectedPro = barbersByBranch[selectedBranch][0];
   
-  const branchLabel = selectedBranch === "sucursal1" ? "Sucursal Centro, Buenos Aires" : "Sucursal Shopping, Buenos Aires";
+  const branchLabel = selectedBranch === "sucursal1" ? "Sucursal Centro" : "Sucursal Norte";
   document.getElementById('summary-branch-label').textContent = branchLabel;
 
   updateProDisplay();
@@ -1117,8 +1100,7 @@ function renderCalendarSlider() {
     const dayName = daysOfWeek[d.getDay()];
     const dateStr = d.toISOString().split('T')[0];
     const isSunday = d.getDay() === 0;
-    const isMonday = d.getDay() === 1;
-    const isDisabled = isSunday || isMonday;
+    const isDisabled = isSunday;
 
     const pill = document.createElement('div');
     pill.className = `date-pill ${isDisabled ? 'disabled' : ''} ${selectedDateStr === dateStr ? 'active' : ''}`;
@@ -1155,10 +1137,9 @@ function renderTimeSlots() {
   if(!selectedDateStr) return;
 
   workTimes.forEach(time => {
-    // Un turno está ocupado solo si coincide Sucursal + Barbero + Fecha + Hora
     const isBusy = existingBookings.some(b => 
       b.branch === selectedBranch && 
-      (selectedPro.name === "Cualquier profesional" || b.barber === selectedPro.name) && 
+      (selectedPro.name === "Sin preferencia de profesional" || b.barber === selectedPro.name) && 
       b.dateStr === selectedDateStr && 
       b.time === time
     );
@@ -1180,7 +1161,7 @@ function renderTimeSlots() {
   });
 }
 
-// ACTUALIZAR CARRITO Y RESUMEN LATERAL
+// ACTUALIZAR RESUMEN
 function updateSummaryUI() {
   const emptyBox = document.getElementById('empty-cart-box');
   const detailsBox = document.getElementById('summary-details-box');
@@ -1219,7 +1200,6 @@ function updateSummaryUI() {
   document.getElementById('sum-duration').textContent = `${totalTime} min`;
   document.getElementById('sum-total').textContent = `$ ${totalMoney.toLocaleString('es-AR')}`;
 
-  // Mostrar línea de profesional y fecha
   const proLine = document.getElementById('summary-pro-line');
   const dateTimeLine = document.getElementById('sum-date-time-line');
   
@@ -1231,7 +1211,6 @@ function updateSummaryUI() {
     proLine.style.display = 'none';
   }
 
-  // Habilitar botón según paso
   if(currentStep === 2) nextBtn.disabled = false;
   else if(currentStep === 3) nextBtn.disabled = false;
   else if(currentStep === 4) nextBtn.disabled = !selectedTimeSlot;
@@ -1241,17 +1220,17 @@ function updateSummaryUI() {
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-// FINALIZAR Y ENVIAR RESERVA
+// FINALIZAR RESERVA
 function submitFinalBooking() {
   const name = document.getElementById('client-name').value.trim();
   const phone = document.getElementById('client-phone').value.trim();
 
   if(!name || !phone) {
-    alert("Por favor ingresá tu nombre y teléfono de contacto.");
+    alert("Por favor ingresá tu nombre y teléfono.");
     return;
   }
 
-  const branchName = selectedBranch === "sucursal1" ? "Sucursal Centro (Av. Principal 123)" : "Sucursal Shopping (Local 45)";
+  const branchName = selectedBranch === "sucursal1" ? "Sucursal Centro" : "Sucursal Norte";
   const serviceNames = selectedServices.map(s => s.name).join(" + ");
   const totalPrice = selectedServices.reduce((a,b) => a + b.price, 0);
 
@@ -1268,34 +1247,26 @@ function submitFinalBooking() {
     phone: phone
   };
 
-  db.ref("turnos_barberia").push().set(bookingData, (err) => {
-    if(err) {
-      alert("Ocurrió un error al guardar la reserva.");
-    } else {
-      const msg = encodeURIComponent(
-        `💈 *NUEVO TURNO CONFIRMADO - ZENIN STUDIO*
-
-` +
-        `👤 *Cliente:* ${name}
-` +
-        `📱 *Teléfono:* ${phone}
-` +
-        `📍 *Sucursal:* ${branchName}
-` +
-        `✂️ *Barbero:* ${selectedPro.name}
-` +
-        `🛠️ *Servicios:* ${serviceNames}
-` +
-        `📅 *Fecha:* ${selectedDateLabel}
-` +
-        `⏰ *Hora:* ${selectedTimeSlot} hs
-` +
-        `💰 *Total:* $ ${totalPrice.toLocaleString('es-AR')}`
-      );
-      window.location.href = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
-    }
+  db.ref("turnos_demo").push().set(bookingData, (err) => {
+    const msg = encodeURIComponent(
+      `📅 *CONFIRMACIÓN DE TURNO - DEMO*\n\n` +
+      `👤 *Cliente:* ${name}\n` +
+      `📱 *Teléfono:* ${phone}\n` +
+      `📍 *Sucursal:* ${branchName}\n` +
+      `👤 *Atendido por:* ${selectedPro.name}\n` +
+      `🛠️ *Servicio:* ${serviceNames}\n` +
+      `📅 *Fecha:* ${selectedDateLabel}\n` +
+      `⏰ *Hora:* ${selectedTimeSlot} hs\n` +
+      `💰 *Total:* $ ${totalPrice.toLocaleString('es-AR')}`
+    );
+    window.location.href = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
   });
 }
 </script>
 </body>
-</html>
+</html>"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+
+print("Updated index.html successfully!")
