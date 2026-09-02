@@ -1562,7 +1562,22 @@ function submitFinalBooking() {
       `⏰ *Hora:* ${selectedTimeSlot} hs\n` +
       `💰 *Total:* $ ${totalPrice.toLocaleString('es-AR')}`
     );
-    window.location.href = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
+
+    // 1. Abrir WhatsApp en segundo plano/nueva pestaña sin irnos de la web
+    window.open(`https://wa.me/${BARBER_PHONE}?text=${msg}`, '_blank');
+
+    // 2. Cerrar el modal del formulario de cliente
+    closeModal('modal-client-form');
+
+    // 3. Mostrar aviso de éxito en pantalla
+    alert("¡Turno reservado correctamente! Ya aparece reflejado en la recepción.");
+
+    // 4. Reiniciar la selección para un próximo turno
+    selectedServices = [];
+    selectedTimeSlot = "";
+    document.getElementById('client-name').value = "";
+    document.getElementById('client-phone').value = "";
+    goToStep(1);
   });
 }
 </script>
