@@ -621,6 +621,36 @@ header{
   .admin-title{font-size:23px}
 }
 
+
+/* DESKTOP PRO BOOKING LAYOUT */
+@media(min-width:881px){
+  .wizard-body{
+    max-width:1260px;
+    grid-template-columns:minmax(0,1fr) 350px;
+    gap:28px;
+    margin-top:34px;
+  }
+  .content-card{
+    background:linear-gradient(180deg,rgba(23,24,27,.72),rgba(13,14,16,.55));
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:20px;
+    padding:28px;
+    box-shadow:0 22px 60px rgba(0,0,0,.18);
+  }
+  .section-title-box h2{font-size:24px}
+  .section-title-box p{font-size:13px}
+  #step-2 .service-item{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    min-height:92px;
+    padding:20px;
+  }
+  #step-2 .service-info h3{font-size:15px}
+  #step-2 .service-info p{font-size:12px}
+  #step-4 .time-slots-grid{grid-template-columns:repeat(4,1fr);gap:10px}
+  #step-4 .time-slot-btn{min-height:46px}
+  .summary-card{top:126px}
+}
 </style>
 </head>
 <body>
@@ -983,11 +1013,11 @@ header{
       </div>
 
       <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">
-        Reserva guardada correctamente. Ahora enviá el mensaje a la barbería por WhatsApp.
+        ¡Reserva confirmada! Tu turno ya quedó guardado. Enviá ahora el mensaje por WhatsApp para avisarle a la barbería.
       </p>
 
       <button id="btn-go-whatsapp" class="btn-continue" style="background:#25D366; color:#fff;" onclick="redirectToWhatsAppNow()">
-        Enviar confirmación por WhatsApp →
+        Enviar por WhatsApp y volver al inicio →
       </button>
     </div>
   </div>
@@ -1057,6 +1087,9 @@ setInterval(() => {
 }, 30000);
 
 function resetFormState() {
+  if(redirectTimer) clearInterval(redirectTimer);
+  redirectTimer = null;
+  pendingWhatsAppUrl = "";
   selectedServices = [];
   selectedBranch = "sucursal1";
   selectedPro = barbersByBranch.sucursal1[0];
@@ -1798,9 +1831,15 @@ function submitFinalBooking() {
 
 function redirectToWhatsAppNow() {
   if(redirectTimer) clearInterval(redirectTimer);
-  if(pendingWhatsAppUrl) {
-    window.location.href = pendingWhatsAppUrl;
-  }
+  redirectTimer = null;
+  if(!pendingWhatsAppUrl) return;
+
+  // Abrimos WhatsApp en otra pestaña para que la web pueda volver al inicio
+  // y quede lista para una nueva reserva inmediatamente.
+  window.open(pendingWhatsAppUrl, '_blank', 'noopener,noreferrer');
+  closeModal('modal-client-form');
+  resetFormState();
+  goToStep(1);
 }
 </script>
 </body>
