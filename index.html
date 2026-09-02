@@ -955,14 +955,14 @@ const firebaseConfig = {
   measurementId: "G-T2Y0BLV337"
 };
 
-// ⚠️ PON AQUÍ TU NÚMERO DE TELÉFONO (Ej: "5491112345678")
+// ⚠️ NÚMERO DE WHATSAPP REAL (Sin el signo + ni espacios)
 const BARBER_PHONE = "1132006823"; 
 
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// DATOS GENÉRICOS DE PROFESIONALES POR SUCURSAL
+// DATOS DE PROFESIONALES POR SUCURSAL
 const barbersByBranch = {
   sucursal1: [
     { name: "Sin preferencia de profesional", sub: "Asignación más rápida", avatar: "⚡" },
@@ -988,7 +988,7 @@ let selectedDateLabel = "";
 let selectedTimeSlot = "";
 let existingBookings = [];
 
-// ESCUCHAR CAMBIOS DE TURNOS EN TIEMPO REAL (SIN NECESIDAD DE REINICIAR)
+// ESCUCHAR CAMBIOS DE TURNOS EN TIEMPO REAL
 db.ref("turnos_demo").on("value", (snapshot) => {
   const data = snapshot.val();
   existingBookings = [];
@@ -998,6 +998,32 @@ db.ref("turnos_demo").on("value", (snapshot) => {
   if(currentStep === 4) renderTimeSlots();
   if(receptionAuthenticated) renderReceptionAgenda();
 });
+
+// REINICIAR ESTADO DEL FORMULARIO COMPLETO
+function resetFormState() {
+  selectedServices = [];
+  selectedBranch = "sucursal1";
+  selectedPro = barbersByBranch.sucursal1[0];
+  selectedDateStr = "";
+  selectedDateLabel = "";
+  selectedTimeSlot = "";
+
+  document.querySelectorAll('.btn-add-service').forEach(btn => {
+    btn.textContent = "+";
+    btn.classList.remove('selected');
+  });
+
+  const branchSel = document.getElementById('branch-select');
+  if(branchSel) branchSel.value = "sucursal1";
+
+  const clientName = document.getElementById('client-name');
+  const clientPhone = document.getElementById('client-phone');
+  if(clientName) clientName.value = "";
+  if(clientPhone) clientPhone.value = "";
+
+  updateProDisplay();
+  updateSummaryUI();
+}
 
 // DESPLEGAR / COLAPSAR CARRITO EN MÓVIL
 function toggleCartMobile() {
@@ -1123,20 +1149,22 @@ function renderProfessionalsModalList() {
   });
 }
 
-// FECHAS Y HORARIOS (PASO 4)
+// CALENDARIO Y TIEMPO REAL
 function renderCalendarSlider() {
   const slider = document.getElementById('dates-slider');
   slider.innerHTML = "";
 
-  const today = new Date();
+  const now = new Date();
   const daysOfWeek = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
   const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-  document.getElementById('current-month-label').textContent = `${months[today.getMonth()]} ${today.getFullYear()}`;
+  document.getElementById('current-month-label').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
+
+  let firstValidDateSet = false;
 
   for(let i = 0; i < 20; i++) {
     const d = new Date();
-    d.setDate(today.getDate() + i);
+    d.setDate(now.getDate() + i);
 
     const dayNum = d.getDate();
     const dayName = daysOfWeek[d.getDay()];
@@ -1147,10 +1175,33 @@ function renderCalendarSlider() {
     const dateStr = `${year}-${month}-${day}`;
     
     const isSunday = d.getDay() === 0;
-    const isDisabled = isSunday;
+
+    // Verificar si el día de hoy ya cerró (si la hora actual superó las 19:20)
+    let isTodayClosed = false;
+    if(i === 0) {
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const lastSlotMinutes = 19 * 60 + 20;
+      if(currentMinutes >= lastSlotMinutes) {
+        isTodayClosed = true;
+      }
+    }
+
+    const isDisabled = isSunday || isTodayClosed;
 
     const pill = document.createElement('div');
-    pill.className = `date-pill ${isDisabled ? 'disabled' : ''} ${selectedDateStr === dateStr ? 'active' : ''}`;
+    
+    // Asignar primer día válido solo una vez
+    let isActive = false;
+    if(!isDisabled && !firstValidDateSet) {
+      selectedDateStr = dateStr;
+      selectedDateLabel = `${dayName} ${dayNum}/${d.getMonth()+1}`;
+      firstValidDateSet = true;
+      isActive = true;
+    } else if(selectedDateStr === dateStr && !isDisabled) {
+      isActive = true;
+    }
+
+    pill.className = `date-pill ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`;
     pill.innerHTML = `
       <span class="day-name">${dayName}</span>
       <span class="day-num">${dayNum}</span>
@@ -1158,11 +1209,6 @@ function renderCalendarSlider() {
     `;
 
     if(!isDisabled) {
-      if(!selectedDateStr || new Date(selectedDateStr) < today) {
-        selectedDateStr = dateStr;
-        selectedDateLabel = `${dayName} ${dayNum}/${d.getMonth()+1}`;
-        pill.classList.add('active');
-      }
       pill.onclick = () => {
         document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
@@ -1183,7 +1229,23 @@ function renderTimeSlots() {
 
   if(!selectedDateStr) return;
 
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+  const isToday = (selectedDateStr === todayStr);
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
   workTimes.forEach(time => {
+    const [h, m] = time.split(':').map(Number);
+    const slotMinutes = h * 60 + m;
+
+    // Control de tiempo real: Bloquear horarios pasados si es el día de hoy
+    const isPast = isToday && (slotMinutes <= currentMinutes);
+
+    // Control de turnos ocupados en base de datos
     const isBusy = existingBookings.some(b => 
       b.branch === selectedBranch && 
       (selectedPro.name === "Sin preferencia de profesional" || b.barber === selectedPro.name) && 
@@ -1191,12 +1253,18 @@ function renderTimeSlots() {
       b.time === time
     );
 
+    const isDisabled = isBusy || isPast;
+
+    let statusText = 'Disponible';
+    if(isBusy) statusText = 'No disponible';
+    if(isPast) statusText = 'Expirado';
+
     const btn = document.createElement('button');
-    btn.className = `time-slot-btn ${isBusy ? 'busy' : ''} ${selectedTimeSlot === time ? 'selected' : ''}`;
-    btn.disabled = isBusy;
-    btn.innerHTML = `<span>${time} hs</span> <span>${isBusy ? 'No disponible' : 'Disponible'}</span>`;
+    btn.className = `time-slot-btn ${isDisabled ? 'busy' : ''} ${selectedTimeSlot === time ? 'selected' : ''}`;
+    btn.disabled = isDisabled;
+    btn.innerHTML = `<span>${time} hs</span> <span>${statusText}</span>`;
     
-    if(!isBusy) {
+    if(!isDisabled) {
       btn.onclick = () => {
         document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
@@ -1492,19 +1560,14 @@ function cancelReceptionBooking(key) {
 
   const booking = existingBookings.find(b => b.firebaseKey === key);
   if(!booking) {
-    alert("No se encontró el turno. Actualizá la agenda e intentá nuevamente.");
+    alert("No se encontró el turno.");
     return;
   }
 
   const client = booking.patient || "este cliente";
   if(!confirm(`¿Cancelar el turno de ${client} a las ${booking.time} hs?`)) return;
 
-  db.ref(`turnos_demo/${key}`).remove((err) => {
-    if(err) {
-      alert("No se pudo cancelar el turno. Verificá la conexión.");
-      return;
-    }
-  });
+  db.ref(`turnos_demo/${key}`).remove();
 }
 
 // FINALIZAR RESERVA
@@ -1517,7 +1580,7 @@ function submitFinalBooking() {
     return;
   }
 
-  // ASIGNACIÓN ALEATORIA
+  // ASIGNACIÓN ALEATORIA DE PROFESIONAL
   let assignedBarber = selectedPro.name;
   if (assignedBarber === "Sin preferencia de profesional") {
     const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
@@ -1563,21 +1626,15 @@ function submitFinalBooking() {
       `💰 *Total:* $ ${totalPrice.toLocaleString('es-AR')}`
     );
 
-    // 1. Abrir WhatsApp en segundo plano/nueva pestaña sin irnos de la web
-    window.open(`https://wa.me/${BARBER_PHONE}?text=${msg}`, '_blank');
-
-    // 2. Cerrar el modal del formulario de cliente
+    // Cerrar modal
     closeModal('modal-client-form');
 
-    // 3. Mostrar aviso de éxito en pantalla
-    alert("¡Turno reservado correctamente!");
-
-    // 4. Reiniciar la selección para un próximo turno
-    selectedServices = [];
-    selectedTimeSlot = "";
-    document.getElementById('client-name').value = "";
-    document.getElementById('client-phone').value = "";
+    // Reiniciar los campos y formulario completo
+    resetFormState();
     goToStep(1);
+
+    // Redirección directa a WhatsApp (Compatible con Celulares sin bloqueos de navegador)
+    window.location.href = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
   });
 }
 </script>
