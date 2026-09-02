@@ -954,7 +954,9 @@ const firebaseConfig = {
   appId: "1:360287665229:web:b0c48af17c5dbec7fdb004",
   measurementId: "G-T2Y0BLV337"
 };
-const BARBER_PHONE = "5491100000000";
+
+// ⚠️ PON AQUÍ TU NÚMERO DE TELÉFONO (Ej: "5491112345678")
+const BARBER_PHONE = "1132006823"; 
 
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
@@ -986,7 +988,7 @@ let selectedDateLabel = "";
 let selectedTimeSlot = "";
 let existingBookings = [];
 
-// Escuchar cambios de turnos en tiempo real
+// ESCUCHAR CAMBIOS DE TURNOS EN TIEMPO REAL (SIN NECESIDAD DE REINICIAR)
 db.ref("turnos_demo").on("value", (snapshot) => {
   const data = snapshot.val();
   existingBookings = [];
@@ -994,6 +996,7 @@ db.ref("turnos_demo").on("value", (snapshot) => {
     Object.keys(data).forEach(k => existingBookings.push({...data[k], firebaseKey:k}));
   }
   if(currentStep === 4) renderTimeSlots();
+  if(receptionAuthenticated) renderReceptionAgenda();
 });
 
 // DESPLEGAR / COLAPSAR CARRITO EN MÓVIL
@@ -1283,11 +1286,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-
 // ==================== RECEPCIÓN / PANEL PRIVADO ====================
-// Demo temporal: esta contraseña NO debe considerarse seguridad real.
-// Cuando se active el servicio, conviene mover la autenticación a Firebase Auth
-// y guardar los permisos del recepcionista en el backend.
 const RECEPTION_PASSWORD = "admin123";
 let receptionAuthenticated = false;
 
@@ -1413,14 +1412,10 @@ function renderReceptionAgenda() {
       const booking = bookings.find(b => b.barber === pro.name && b.time === time);
       if(booking) {
         reserved++;
-        rows.push({
-          time, pro:pro.name, booking, reserved:true
-        });
+        rows.push({ time, pro:pro.name, booking, reserved:true });
       } else {
         free++;
-        rows.push({
-          time, pro:pro.name, booking:null, reserved:false
-        });
+        rows.push({ time, pro:pro.name, booking:null, reserved:false });
       }
     });
   });
@@ -1509,7 +1504,6 @@ function cancelReceptionBooking(key) {
       alert("No se pudo cancelar el turno. Verificá la conexión.");
       return;
     }
-    renderReceptionAgenda();
   });
 }
 
@@ -1523,16 +1517,10 @@ function submitFinalBooking() {
     return;
   }
 
-  // LÓGICA DE ASIGNACIÓN ALEATORIA DE PROFESIONAL
+  // ASIGNACIÓN ALEATORIA
   let assignedBarber = selectedPro.name;
-
   if (assignedBarber === "Sin preferencia de profesional") {
-    // Filtrar los profesionales reales de la sucursal seleccionada
-    const realPros = barbersByBranch[selectedBranch].filter(
-      p => p.name !== "Sin preferencia de profesional"
-    );
-
-    // Seleccionar uno al azar
+    const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
     if (realPros.length > 0) {
       const randomIndex = Math.floor(Math.random() * realPros.length);
       assignedBarber = realPros[randomIndex].name;
@@ -1546,7 +1534,7 @@ function submitFinalBooking() {
   const bookingData = {
     branch: selectedBranch,
     branchName: branchName,
-    barber: assignedBarber, // <--- Guarda el profesional real asignado
+    barber: assignedBarber,
     service: serviceNames,
     totalPrice: totalPrice,
     dateStr: selectedDateStr,
@@ -1558,8 +1546,8 @@ function submitFinalBooking() {
   };
 
   db.ref("turnos_demo").push().set(bookingData, (err) => {
-    if (err) {
-      alert("Ocurrió un error al guardar la reserva. Intentá nuevamente.");
+    if(err) {
+      alert("Ocurrió un error al guardar la reserva.");
       return;
     }
 
