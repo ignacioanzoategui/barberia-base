@@ -433,6 +433,36 @@ header{
   content:"✓";margin-left:auto;color:var(--accent);font-weight:900;font-size:15px
 }
 
+/* Tarjeta de Confirmación */
+.confirmation-box{
+  text-align:center;
+  padding:10px 5px;
+}
+.confirmation-icon{
+  width:60px;height:60px;
+  background:var(--accent-soft);
+  border:2px solid var(--accent);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;color:var(--accent);
+  margin:0 auto 16px;
+}
+.confirmation-details{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin:18px 0;
+  text-align:left;
+  font-size:12px;
+}
+.confirmation-details p{
+  display:flex;justify-content:space-between;
+  margin-bottom:8px;padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.confirmation-details p:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+
 @media(max-width:880px){
   .wizard-body{grid-template-columns:1fr;margin-bottom:110px}
   .summary-card{
@@ -565,6 +595,7 @@ header{
 }
 .status-badge.available{background:rgba(105,211,155,.08);color:var(--success);border:1px solid rgba(105,211,155,.18)}
 .status-badge.reserved{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-border)}
+.status-badge.expired{background:rgba(255,255,255,.04);color:var(--muted-2);border:1px solid var(--border)}
 .status-badge.cancelled{background:rgba(228,125,125,.08);color:var(--danger);border:1px solid rgba(228,125,125,.18)}
 .admin-cancel{
   background:transparent;border:1px solid var(--border);color:var(--muted);
@@ -597,7 +628,6 @@ header{
 <!-- HEADER NAVBAR -->
 <header>
   <div class="nav-container">
-    <!-- Cambio de Nombre a BARBER DEMO -->
     <div class="brand-logo" onclick="goToStep(1)">BARBER <span>DEMO</span></div>
     <div class="nav-actions">
       <button class="btn-outline" onclick="openModal('modal-location')">⌖ Sucursales</button>
@@ -605,7 +635,6 @@ header{
     </div>
   </div>
 </header>
-
 
 <!-- RECEPCIÓN / PANEL PRIVADO -->
 <div id="reception-page" class="view">
@@ -630,7 +659,7 @@ header{
       <div>
         <div class="admin-kicker">Gestión del local</div>
         <h1 class="admin-title">Agenda de turnos</h1>
-        <p class="admin-subtitle">Vista general de reservas y espacios disponibles.</p>
+        <p class="admin-subtitle">Vista general de reservas y espacios disponibles en tiempo real.</p>
       </div>
       <div class="admin-actions">
         <button class="btn-outline" onclick="goToStep(1)">← Volver a la web</button>
@@ -669,7 +698,7 @@ header{
       <div class="admin-table-head">
         <div>
           <h3 id="admin-agenda-title">Agenda</h3>
-          <span>Los espacios libres también aparecen para facilitar la gestión.</span>
+          <span>Los horarios pasados se muestran deshabilitados automáticamente.</span>
         </div>
       </div>
       <div id="admin-agenda-container"></div>
@@ -823,7 +852,7 @@ header{
         </div>
       </div>
 
-      <!-- HORARIOS DISPONIBLES (TAMAÑO MÁS PEQUEÑO EN MÓVIL) -->
+      <!-- HORARIOS DISPONIBLES -->
       <div class="section-title-box" style="margin-top:16px; margin-bottom:12px;">
         <h3 style="font-size:15px;">Horarios disponibles:</h3>
       </div>
@@ -836,8 +865,6 @@ header{
 
   <!-- RIGHT SIDEBAR / BOTTOM FLOATING SUMMARY CARD -->
   <div id="summary-card" class="summary-card collapsed">
-    
-    <!-- Botón desplegable sólo para vistas móviles -->
     <button class="cart-toggle-btn" onclick="toggleCartMobile()">
       <span>Resumen de tu reserva</span>
       <span id="cart-arrow-icon">▲ Ver detalle</span>
@@ -851,7 +878,6 @@ header{
       </div>
     </div>
 
-    <!-- Contenido colapsable en móvil -->
     <div class="cart-collapsible-content">
       <div id="empty-cart-box" class="empty-cart">
         <div class="empty-cart-icon">+</div>
@@ -871,7 +897,6 @@ header{
       </div>
     </div>
 
-    <!-- El pie con total y botón Continuar SIEMPRE VISIBLE en móvil -->
     <div class="summary-footer">
       <div class="summary-totals">
         <span>Duración: <strong id="sum-duration" style="color:#fff;">0 min</strong></span>
@@ -919,26 +944,52 @@ header{
   </div>
 </div>
 
-<!-- MODAL 3: DATOS DEL CLIENTE PARA FINALIZAR -->
+<!-- MODAL 3: DATOS DEL CLIENTE Y CONFIRMACIÓN -->
 <div id="modal-client-form" class="modal-overlay">
   <div class="modal-card">
-    <div class="modal-header">
-      <h3>Confirmar Cita</h3>
-      <button class="btn-close-modal" onclick="closeModal('modal-client-form')">✕</button>
-    </div>
-    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Ingresá tus datos para guardar el turno y generar la confirmación.</p>
-    
-    <div class="form-group">
-      <label for="client-name">Nombre y Apellido:</label>
-      <input id="client-name" placeholder="Ej. Juan Pérez">
+    <!-- FORMULARIO DE INGRESO DE DATOS -->
+    <div id="booking-form-state">
+      <div class="modal-header">
+        <h3>Confirmar Cita</h3>
+        <button class="btn-close-modal" onclick="closeModal('modal-client-form')">✕</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Ingresá tus datos para guardar el turno y generar la confirmación.</p>
+      
+      <div class="form-group">
+        <label for="client-name">Nombre y Apellido:</label>
+        <input id="client-name" placeholder="Ej. Juan Pérez">
+      </div>
+
+      <div class="form-group">
+        <label for="client-phone">Teléfono / WhatsApp:</label>
+        <input id="client-phone" placeholder="Ej. 11 1234 5678">
+      </div>
+
+      <button id="btn-submit-booking" class="btn-continue" onclick="submitFinalBooking()" style="margin-top:10px;">Confirmar reserva <span style="margin-left:7px">→</span></button>
     </div>
 
-    <div class="form-group">
-      <label for="client-phone">Teléfono / WhatsApp:</label>
-      <input id="client-phone" placeholder="Ej. 11 1234 5678">
-    </div>
+    <!-- PANTALLA DE RESERVA CONFIRMADA PARA EL CLIENTE -->
+    <div id="booking-success-state" style="display:none;" class="confirmation-box">
+      <div class="confirmation-icon">✓</div>
+      <h2 style="font-size:22px; font-weight:800; margin-bottom:6px;">¡Reserva Confirmada!</h2>
+      <p style="font-size:13px; color:var(--muted);">Tu turno fue agendado exitosamente en el sistema.</p>
 
-    <button class="btn-continue" onclick="submitFinalBooking()" style="margin-top:10px;">Confirmar reserva <span style="margin-left:7px">→</span></button>
+      <div class="confirmation-details">
+        <p><span>Cliente:</span> <strong id="conf-client-name" style="color:#fff;">-</strong></p>
+        <p><span>Sucursal:</span> <strong id="conf-branch-name" style="color:#fff;">-</strong></p>
+        <p><span>Profesional:</span> <strong id="conf-barber-name" style="color:#fff;">-</strong></p>
+        <p><span>Fecha y Hora:</span> <strong id="conf-date-time" style="color:var(--accent);">-</strong></p>
+        <p><span>Servicio:</span> <strong id="conf-service-name" style="color:#fff;">-</strong></p>
+      </div>
+
+      <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">
+        Redirigiendo a WhatsApp en <strong id="redirect-counter" style="color:var(--accent);">5</strong> segundos para enviar el comprobante...
+      </p>
+
+      <button id="btn-go-whatsapp" class="btn-continue" style="background:#25D366; color:#fff;" onclick="redirectToWhatsAppNow()">
+        Abrir WhatsApp Ahora 💬
+      </button>
+    </div>
   </div>
 </div>
 
@@ -955,14 +1006,12 @@ const firebaseConfig = {
   measurementId: "G-T2Y0BLV337"
 };
 
-// ⚠️ NÚMERO DE WHATSAPP REAL (Sin el signo + ni espacios)
+// ⚠️ NÚMERO DE WHATSAPP REAL
 const BARBER_PHONE = "1132006823"; 
 
-// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// DATOS DE PROFESIONALES POR SUCURSAL
 const barbersByBranch = {
   sucursal1: [
     { name: "Sin preferencia de profesional", sub: "Asignación más rápida", avatar: "⚡" },
@@ -987,8 +1036,10 @@ let selectedDateStr = "";
 let selectedDateLabel = "";
 let selectedTimeSlot = "";
 let existingBookings = [];
+let pendingWhatsAppUrl = "";
+let redirectTimer = null;
 
-// ESCUCHAR CAMBIOS DE TURNOS EN TIEMPO REAL
+// ESCUCHAR TURNO EN TIEMPO REAL
 db.ref("turnos_demo").on("value", (snapshot) => {
   const data = snapshot.val();
   existingBookings = [];
@@ -999,7 +1050,12 @@ db.ref("turnos_demo").on("value", (snapshot) => {
   if(receptionAuthenticated) renderReceptionAgenda();
 });
 
-// REINICIAR ESTADO DEL FORMULARIO COMPLETO
+// AUTO-ACTUALIZAR TIEMPO REAL CADA MINUTO (Para bloquear horarios que pasan en vivo)
+setInterval(() => {
+  if(currentStep === 4) renderTimeSlots();
+  if(receptionAuthenticated) renderReceptionAgenda();
+}, 30000);
+
 function resetFormState() {
   selectedServices = [];
   selectedBranch = "sucursal1";
@@ -1021,11 +1077,13 @@ function resetFormState() {
   if(clientName) clientName.value = "";
   if(clientPhone) clientPhone.value = "";
 
+  document.getElementById('booking-form-state').style.display = 'block';
+  document.getElementById('booking-success-state').style.display = 'none';
+
   updateProDisplay();
   updateSummaryUI();
 }
 
-// DESPLEGAR / COLAPSAR CARRITO EN MÓVIL
 function toggleCartMobile() {
   const cartCard = document.getElementById('summary-card');
   const arrowIcon = document.getElementById('cart-arrow-icon');
@@ -1039,7 +1097,6 @@ function toggleCartMobile() {
   }
 }
 
-// NAVEGACIÓN Y WIZARD
 function goToStep(stepNum) {
   currentStep = stepNum;
 
@@ -1085,10 +1142,13 @@ function goToStep(stepNum) {
 function handleWizardNext() {
   if(currentStep === 2) goToStep(3);
   else if(currentStep === 3) goToStep(4);
-  else if(currentStep === 4) openModal('modal-client-form');
+  else if(currentStep === 4) {
+    document.getElementById('booking-form-state').style.display = 'block';
+    document.getElementById('booking-success-state').style.display = 'none';
+    openModal('modal-client-form');
+  }
 }
 
-// GESTIÓN DE SERVICIOS
 function toggleService(name, price, duration, btnEl) {
   const idx = selectedServices.findIndex(s => s.name === name);
   if(idx > -1) {
@@ -1103,7 +1163,6 @@ function toggleService(name, price, duration, btnEl) {
   updateSummaryUI();
 }
 
-// GESTIÓN DE PROFESIONAL Y SUCURSAL
 function onBranchChange() {
   selectedBranch = document.getElementById('branch-select').value;
   selectedPro = barbersByBranch[selectedBranch][0];
@@ -1149,7 +1208,6 @@ function renderProfessionalsModalList() {
   });
 }
 
-// CALENDARIO Y TIEMPO REAL
 function renderCalendarSlider() {
   const slider = document.getElementById('dates-slider');
   slider.innerHTML = "";
@@ -1176,7 +1234,6 @@ function renderCalendarSlider() {
     
     const isSunday = d.getDay() === 0;
 
-    // Verificar si el día de hoy ya cerró (si la hora actual superó las 19:20)
     let isTodayClosed = false;
     if(i === 0) {
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -1190,7 +1247,6 @@ function renderCalendarSlider() {
 
     const pill = document.createElement('div');
     
-    // Asignar primer día válido solo una vez
     let isActive = false;
     if(!isDisabled && !firstValidDateSet) {
       selectedDateStr = dateStr;
@@ -1242,10 +1298,8 @@ function renderTimeSlots() {
     const [h, m] = time.split(':').map(Number);
     const slotMinutes = h * 60 + m;
 
-    // Control de tiempo real: Bloquear horarios pasados si es el día de hoy
     const isPast = isToday && (slotMinutes <= currentMinutes);
 
-    // Control de turnos ocupados en base de datos
     const isBusy = existingBookings.some(b => 
       b.branch === selectedBranch && 
       (selectedPro.name === "Sin preferencia de profesional" || b.barber === selectedPro.name) && 
@@ -1276,7 +1330,6 @@ function renderTimeSlots() {
   });
 }
 
-// ACTUALIZAR RESUMEN
 function updateSummaryUI() {
   const emptyBox = document.getElementById('empty-cart-box');
   const detailsBox = document.getElementById('summary-details-box');
@@ -1331,13 +1384,13 @@ function updateSummaryUI() {
   else if(currentStep === 4) nextBtn.disabled = !selectedTimeSlot;
 }
 
-// MODALES
 function openModal(id) {
   const modal = document.getElementById(id);
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 function closeModal(id) {
+  if(redirectTimer) clearInterval(redirectTimer);
   const modal = document.getElementById(id);
   modal.classList.remove('active');
   if(!document.querySelector('.modal-overlay.active')) document.body.style.overflow = '';
@@ -1459,6 +1512,7 @@ function getAdminBookings(branch, dateStr, proFilter) {
   );
 }
 
+// RECEPCIÓN EN TIEMPO REAL CON CONTROL DE HORARIOS PASADOS
 function renderReceptionAgenda() {
   if(!receptionAuthenticated) return;
 
@@ -1469,6 +1523,15 @@ function renderReceptionAgenda() {
   const visiblePros = proFilter === 'ALL' ? pros : pros.filter(p => p.name === proFilter);
   const bookings = getAdminBookings(branch, dateStr, proFilter);
 
+  // Calcular si la fecha seleccionada es hoy para validar la hora actual
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+  const isToday = (dateStr === todayStr);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
   let total = 0;
   let reserved = 0;
   let free = 0;
@@ -1477,13 +1540,17 @@ function renderReceptionAgenda() {
   visiblePros.forEach(pro => {
     workTimes.forEach(time => {
       total++;
+      const [h, m] = time.split(':').map(Number);
+      const slotMinutes = h * 60 + m;
+      const isPast = isToday && (slotMinutes <= currentMinutes);
+
       const booking = bookings.find(b => b.barber === pro.name && b.time === time);
       if(booking) {
         reserved++;
-        rows.push({ time, pro:pro.name, booking, reserved:true });
+        rows.push({ time, pro:pro.name, booking, reserved:true, expired:false });
       } else {
-        free++;
-        rows.push({ time, pro:pro.name, booking:null, reserved:false });
+        if(!isPast) free++;
+        rows.push({ time, pro:pro.name, booking:null, reserved:false, expired:isPast });
       }
     });
   });
@@ -1535,6 +1602,19 @@ function renderReceptionAgenda() {
           <td><button class="admin-cancel" onclick="cancelReceptionBooking('${escapeHtml(b.firebaseKey || '')}')">Cancelar</button></td>
         </tr>
       `;
+    } else if(row.expired) {
+      table += `
+        <tr style="opacity:0.4;">
+          <td><strong>${escapeHtml(row.time)} hs</strong></td>
+          <td><div class="admin-pro">${escapeHtml(row.pro)}</div></td>
+          <td><span class="status-badge expired">✕ Expirado</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span style="color:var(--muted-2);font-size:10px">Pasado</span></td>
+        </tr>
+      `;
     } else {
       table += `
         <tr>
@@ -1570,17 +1650,20 @@ function cancelReceptionBooking(key) {
   db.ref(`turnos_demo/${key}`).remove();
 }
 
-// FINALIZAR RESERVA
+// CONFIRMAR RESERVA Y MOSTRAR CONFIRMACIÓN
 function submitFinalBooking() {
   const name = document.getElementById('client-name').value.trim();
   const phone = document.getElementById('client-phone').value.trim();
+  const submitBtn = document.getElementById('btn-submit-booking');
 
   if(!name || !phone) {
     alert("Por favor ingresá tu nombre y teléfono.");
     return;
   }
 
-  // ASIGNACIÓN ALEATORIA DE PROFESIONAL
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Procesando...";
+
   let assignedBarber = selectedPro.name;
   if (assignedBarber === "Sin preferencia de profesional") {
     const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
@@ -1609,10 +1692,20 @@ function submitFinalBooking() {
   };
 
   db.ref("turnos_demo").push().set(bookingData, (err) => {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Confirmar reserva <span style="margin-left:7px">→</span>';
+
     if(err) {
       alert("Ocurrió un error al guardar la reserva.");
       return;
     }
+
+    // Llenar pantalla de confirmación
+    document.getElementById('conf-client-name').textContent = name;
+    document.getElementById('conf-branch-name').textContent = branchName;
+    document.getElementById('conf-barber-name').textContent = assignedBarber;
+    document.getElementById('conf-date-time').textContent = `${selectedDateLabel} - ${selectedTimeSlot} hs`;
+    document.getElementById('conf-service-name').textContent = serviceNames;
 
     const msg = encodeURIComponent(
       `📅 *CONFIRMACIÓN DE TURNO - BARBER DEMO*\n\n` +
@@ -1626,16 +1719,36 @@ function submitFinalBooking() {
       `💰 *Total:* $ ${totalPrice.toLocaleString('es-AR')}`
     );
 
-    // Cerrar modal
-    closeModal('modal-client-form');
+    pendingWhatsAppUrl = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
 
-    // Reiniciar los campos y formulario completo
+    // Mostrar estado de éxito en el modal
+    document.getElementById('booking-form-state').style.display = 'none';
+    document.getElementById('booking-success-state').style.display = 'block';
+
+    // Iniciar contador regresivo
+    let secondsLeft = 5;
+    const counterEl = document.getElementById('redirect-counter');
+    counterEl.textContent = secondsLeft;
+
+    if(redirectTimer) clearInterval(redirectTimer);
+    redirectTimer = setInterval(() => {
+      secondsLeft--;
+      counterEl.textContent = secondsLeft;
+      if(secondsLeft <= 0) {
+        clearInterval(redirectTimer);
+        redirectToWhatsAppNow();
+      }
+    }, 1000);
+
     resetFormState();
-    goToStep(1);
-
-    // Redirección directa a WhatsApp (Compatible con Celulares sin bloqueos de navegador)
-    window.location.href = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
   });
+}
+
+function redirectToWhatsAppNow() {
+  if(redirectTimer) clearInterval(redirectTimer);
+  if(pendingWhatsAppUrl) {
+    window.location.href = pendingWhatsAppUrl;
+  }
 }
 </script>
 </body>
