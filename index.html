@@ -3,132 +3,944 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Barbería & Co. | Reserva de Turnos</title>
+<title>ZENIN STUDIO | Barbería & Turnos</title>
 
-<!-- Scripts de Firebase -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-:root{
-  --bg:#121212; --card:#1e1e1e; --text:#f5f5f5; --muted:#a0a0a0;
-  --accent:#d4af37; /* Dorado Elegante */
-  --accent-hover:#b59226; --line:#333; --danger:#cf6679;
+:root {
+  --bg: #121212;
+  --card-bg: #1e1e1e;
+  --card-border: #2a2a2a;
+  --text: #f5f5f5;
+  --text-muted: #9e9e9e;
+  --accent: #d4af37;
+  --accent-hover: #c29f2e;
+  --white: #ffffff;
+  --gray-button: #2b2b2b;
+  --gray-button-hover: #3a3a3a;
+  --line: #2a2a2a;
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:var(--bg)}
-header{background:#0a0a0a;border-bottom:2px solid var(--accent);padding:15px 0}
-.wrap{max-width:980px;margin:auto;padding:0 20px}
-.nav{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
-.brand{font-weight:900;font-size:22px;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
-.badge{font-size:13px;color:var(--muted)}
 
-.hero{text-align:center;padding:40px 0 30px}
-.hero h1{font-size:clamp(30px,5vw,48px);margin:10px 0;text-transform:uppercase;letter-spacing:1px}
-.hero p{font-size:16px;color:var(--muted);max-width:500px;margin:auto}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
-.section{padding:20px 0 50px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px}
-.card h2{margin-top:0;font-size:20px;color:var(--accent)}
-
-label{display:block;font-size:14px;font-weight:700;margin:16px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-select, input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:#2a2a2a;color:#fff}
-select:focus, input:focus{outline:none;border-color:var(--accent)}
-
-.times{display:grid;grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));gap:10px;margin-top:10px}
-.time{border:1px solid var(--line);background:#252525;color:#fff;border-radius:10px;padding:12px;text-align:center;font-size:15px;font-weight:700;cursor:pointer}
-.time:hover{border-color:var(--accent);color:var(--accent)}
-.time.busy{background:#181818;color:#555;cursor:not-allowed;text-decoration:line-through;border-color:#222}
-
-button.btn-main{
-  width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;
-  padding:16px;font-weight:900;font-size:17px;cursor:pointer;text-transform:uppercase;margin-top:20px;
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-button.btn-main:hover{background:var(--accent-hover)}
 
-footer{text-align:center;padding:30px 0;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+/* Header Navbar */
+header {
+  background: #0a0a0a;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand-logo {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.brand-logo span { color: var(--accent); }
+
+.nav-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #444;
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  border-color: var(--white);
+  background: rgba(255,255,255,0.05);
+}
+
+.btn-primary {
+  background: var(--white);
+  color: #000;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+/* Views Management */
+.view { display: none; width: 100%; }
+.view.active { display: block; }
+
+/* STEP 1: LANDING HERO */
+.hero-section {
+  max-width: 900px;
+  margin: 60px auto 40px;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.hero-subtitle-tag {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.hero-title {
+  font-size: clamp(34px, 5.5vw, 62px);
+  font-weight: 400;
+  line-height: 1.15;
+  margin-bottom: 24px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.hero-title i {
+  font-style: italic;
+  color: #d0d0d0;
+}
+
+.hero-desc {
+  color: var(--text-muted);
+  font-size: 16px;
+  max-width: 580px;
+  margin: 0 auto 36px;
+  line-height: 1.6;
+}
+
+.hero-ctas {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+}
+
+.btn-hero-main {
+  background: var(--white);
+  color: #000;
+  border: none;
+  padding: 16px 36px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-hero-main:hover { background: #e5e5e5; }
+
+.btn-hero-sec {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-hero-sec:hover { border-color: #555; }
+
+.hero-features {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  color: var(--text-muted);
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.hero-features span { display: flex; align-items: center; gap: 6px; }
+
+/* STEPS WIZARD LAYOUT (Steps 2, 3, 4) */
+.wizard-header {
+  background: #181818;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 20px;
+  position: sticky;
+  top: 61px;
+  z-index: 90;
+}
+
+.wizard-steps {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.step-item.active { color: var(--white); }
+.step-item.completed { color: var(--accent); }
+
+.step-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--gray-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.step-item.active .step-badge { background: var(--white); color: #000; }
+.step-item.completed .step-badge { background: var(--accent); color: #000; }
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--line);
+  margin: 0 10px;
+}
+
+/* WIZARD CONTENT CONTAINER (Main + Sidebar) */
+.wizard-body {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 30px;
+}
+
+@media (max-width: 880px) {
+  .wizard-body { grid-template-columns: 1fr; }
+}
+
+/* LEFT CONTENT COLUMN */
+.content-card {
+  background: var(--bg);
+}
+
+.section-title-box {
+  margin-bottom: 24px;
+}
+
+.section-title-box h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.section-title-box p {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* SERVICES LIST */
+.service-item {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s;
+}
+
+.service-item:hover { border-color: #444; }
+
+.service-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.service-info p { color: var(--text-muted); font-size: 13px; }
+
+.service-price-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.service-price {
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.btn-add {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--gray-button);
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-add:hover, .btn-add.selected {
+  background: var(--white);
+  color: #000;
+  border-color: var(--white);
+}
+
+/* PROFESSIONAL SELECTION */
+.pro-card-selected {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.pro-select-trigger {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  background: #181818;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.pro-select-trigger:hover { border-color: var(--white); }
+
+/* HORIZONTAL CALENDAR SLIDER */
+.calendar-container {
+  margin-bottom: 30px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.calendar-header h3 { font-size: 18px; font-weight: 700; }
+
+.dates-slider {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-behavior: smooth;
+}
+
+.dates-slider::-webkit-scrollbar { height: 6px; }
+.dates-slider::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+.date-pill {
+  min-width: 62px;
+  height: 75px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.date-pill .day-name { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+.date-pill .day-num { font-size: 18px; font-weight: 800; }
+.date-pill .dot { width: 4px; height: 4px; background: #4cd964; border-radius: 50%; margin-top: 6px; }
+
+.date-pill:hover { border-color: #555; }
+.date-pill.active { background: var(--white); color: #000; border-color: var(--white); }
+.date-pill.active .day-name { color: #555; }
+.date-pill.disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* TIME SLOTS */
+.time-slots-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-slot-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-slot-btn:hover { border-color: var(--white); }
+.time-slot-btn.selected { border-color: var(--white); background: #282828; }
+.time-slot-btn.busy { opacity: 0.35; text-decoration: line-through; cursor: not-allowed; }
+
+/* RIGHT SIDEBAR SUMMARY CARD */
+.summary-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 24px;
+  position: sticky;
+  top: 140px;
+  height: fit-content;
+}
+
+.shop-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.shop-logo {
+  width: 44px;
+  height: 44px;
+  background: #000;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: var(--white);
+  border: 1px solid #333;
+}
+
+.shop-details h4 { font-size: 16px; font-weight: 700; }
+.shop-details p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.empty-cart {
+  text-align: center;
+  padding: 40px 10px;
+  color: var(--text-muted);
+}
+
+.empty-cart-icon {
+  width: 48px;
+  height: 48px;
+  background: #181818;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 20px;
+}
+
+.summary-details-box {
+  display: none;
+}
+
+.summary-item-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.summary-item-line .name { font-weight: 600; }
+.summary-item-line .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.summary-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.summary-totals {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.summary-totals .price-total {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.btn-continue {
+  width: 100%;
+  background: var(--white);
+  color: #000;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-continue:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.btn-continue:not(:disabled):hover {
+  background: #e0e0e0;
+}
+
+/* MODAL OVERLAY & POPUPS */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 { font-size: 18px; font-weight: 700; }
+
+.btn-close-modal {
+  background: #282828;
+  border: none;
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close-modal:hover { color: var(--white); background: #333; }
+
+/* PRO LIST IN MODAL */
+.pro-option-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #181818;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pro-option-item:hover { border-color: var(--white); }
+.pro-option-item.selected { border-color: var(--white); background: #222; }
+
+.pro-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  overflow: hidden;
+}
+
+.pro-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.pro-info h4 { font-size: 15px; font-weight: 700; }
+.pro-info p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* FORM INPUTS */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 14px;
+  background: #181818;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--white);
+}
+
+.branch-selector-box {
+  background: #181818;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
 </style>
 </head>
 <body>
 
+<!-- HEADER NAVBAR -->
 <header>
-  <div class="wrap nav">
-    <div>
-      <div class="brand">✂️ Barbería & Co.</div>
-      <div class="badge">Estilo & Tradición</div>
+  <div class="nav-container">
+    <div class="brand-logo" onclick="goToStep(1)">ZENIN <span>STUDIO</span></div>
+    <div class="nav-actions">
+      <button class="btn-outline" onclick="openModal('modal-location')">
+        📍 UBICACIÓN
+      </button>
+      <button class="btn-primary" onclick="goToStep(2)">Reservar turno</button>
     </div>
   </div>
 </header>
 
-<main class="wrap">
-  <section class="hero">
-    <h1>Reserva tu Turno</h1>
-    <p>Seleccioná tu sucursal, tu barbero de confianza y el servicio que deseas realizarte.</p>
-  </section>
+<!-- STEP 1: LANDING PAGE VIEW -->
+<div id="step-1" class="view active">
+  <div class="hero-section">
+    <div class="hero-subtitle-tag">— BARBERÍA · BUENOS AIRES —</div>
+    <h1 class="hero-title">El corte indicado,<br>con el <i>profesional</i> indicado.</h1>
+    <p class="hero-desc">Cada uno de nuestros barberos tiene su especialidad. Elegí quién te atiende, reservá tu horario y dejá que potenciemos tu imagen.</p>
+    
+    <div class="hero-ctas">
+      <button class="btn-hero-main" onclick="goToStep(2)">Reservar turno ➔</button>
+      <button class="btn-hero-sec" onclick="goToStep(2)">Ver servicios</button>
+    </div>
 
-  <section class="section">
-    <div class="card">
-      <h2>1. Configuración de la Reserva</h2>
+    <div class="hero-features">
+      <span>★ 11 especialistas</span>
+      <span>⏰ Reserva en 1 minuto</span>
+      <span>✓ Confirmación al instante por WhatsApp</span>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD BAR (For Steps 2, 3, 4) -->
+<div id="wizard-bar" style="display:none;" class="wizard-header">
+  <div class="wizard-steps">
+    <div id="badge-step-2" class="step-item active">
+      <div class="step-badge">1</div>
+      <span>SERVICIOS</span>
+    </div>
+    <div class="step-line"></div>
+    <div id="badge-step-3" class="step-item">
+      <div class="step-badge">2</div>
+      <span>PROFESIONAL</span>
+    </div>
+    <div class="step-line"></div>
+    <div id="badge-step-4" class="step-item">
+      <div class="step-badge">3</div>
+      <span>FECHA Y HORA</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN WIZARD BODY (Steps 2, 3, 4) -->
+<div id="wizard-container" style="display:none;" class="wizard-body">
+  
+  <!-- LEFT COLUMN CONTENT -->
+  <div class="content-card">
+
+    <!-- STEP 2: SERVICIOS -->
+    <div id="step-2" class="view">
+      <div class="section-title-box">
+        <h2>Seleccioná tus servicios</h2>
+        <p>Elegí uno o más servicios para continuar con tu reserva.</p>
+      </div>
+
+      <div class="service-item">
+        <div class="service-info">
+          <h3>Servicio completo</h3>
+          <p>⏱ 40 minutos · Asesoramiento + Corte + Lavado + Peinado</p>
+        </div>
+        <div class="service-price-btn">
+          <div class="service-price">$ 20.000</div>
+          <button class="btn-add" onclick="toggleService('Servicio completo', 20000, 40, this)">+</button>
+        </div>
+      </div>
+
+      <div class="service-item">
+        <div class="service-info">
+          <h3>Servicio completo + barba</h3>
+          <p>⏱ 50 minutos · Corte de cabello + Arreglo y perfilado de barba con toalla caliente</p>
+        </div>
+        <div class="service-price-btn">
+          <div class="service-price">$ 25.000</div>
+          <button class="btn-add" onclick="toggleService('Servicio completo + barba', 25000, 50, this)">+</button>
+        </div>
+      </div>
+
+      <div class="service-item">
+        <div class="service-info">
+          <h3>Servicio Completo de Cabello Largo</h3>
+          <p>⏱ 60 minutos · Corte a tijera, texturizado y modelado para melenas</p>
+        </div>
+        <div class="service-price-btn">
+          <div class="service-price">$ 30.000</div>
+          <button class="btn-add" onclick="toggleService('Servicio Cabello Largo', 30000, 60, this)">+</button>
+        </div>
+      </div>
+
+      <div class="service-item">
+        <div class="service-info">
+          <h3>Perfilado y Arreglo de Barba</h3>
+          <p>⏱ 30 minutos · Ritual de barba completo</p>
+        </div>
+        <div class="service-price-btn">
+          <div class="service-price">$ 15.000</div>
+          <button class="btn-add" onclick="toggleService('Arreglo de Barba', 15000, 30, this)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: PROFESIONAL Y SUCURSAL -->
+    <div id="step-3" class="view">
+      <div class="section-title-box">
+        <h2>Elige tu profesional y sucursal</h2>
+        <p>Seleccioná en qué sucursal querés atenderte y quién te asistirá.</p>
+      </div>
+
+      <div class="branch-selector-box">
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="branch-select">Sucursal:</label>
+          <select id="branch-select" onchange="onBranchChange()">
+            <option value="sucursal1">Sucursal Centro (Av. Principal 123)</option>
+            <option value="sucursal2">Sucursal Shopping (Local 45)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pro-card-selected">
+        <label style="font-size:12px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Profesional seleccionado:</label>
+        <div class="pro-select-trigger" onclick="openModal('modal-professionals')">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div id="selected-pro-avatar" class="pro-avatar">⚡</div>
+            <div>
+              <h4 id="selected-pro-name" style="font-size:16px; font-weight:700;">Cualquier profesional</h4>
+              <p id="selected-pro-sub" style="font-size:13px; color:var(--text-muted);">Asignación según disponibilidad</p>
+            </div>
+          </div>
+          <span style="font-size:13px; color:var(--accent); font-weight:700;">Cambiar ➔</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: FECHA Y HORA -->
+    <div id="step-4" class="view">
+      <div class="section-title-box">
+        <h2>Selecciona fecha y hora</h2>
+        <p>Elegí el día y el horario disponible que te quede más cómodo.</p>
+      </div>
+
+      <!-- HORIZONTAL CALENDAR -->
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <h3 id="current-month-label">Septiembre 2026</h3>
+        </div>
+        <div id="dates-slider" class="dates-slider">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- HORARIOS DISPONIBLES -->
+      <div class="section-title-box" style="margin-top:20px;">
+        <h3 style="font-size:16px;">Horarios disponibles:</h3>
+      </div>
+      <div id="time-slots-grid" class="time-slots-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN SUMMARY CARD -->
+  <div class="summary-card">
+    <div class="shop-brand">
+      <div class="shop-logo">Z</div>
+      <div class="shop-details">
+        <h4>ZENIN STUDIO</h4>
+        <p id="summary-branch-label">Sucursal Centro, Buenos Aires</p>
+      </div>
+    </div>
+
+    <div id="empty-cart-box" class="empty-cart">
+      <div class="empty-cart-icon">🛍️</div>
+      <p style="font-size:14px; font-weight:600;">Tu carrito está vacío</p>
+      <p style="font-size:12px; margin-top:4px;">Selecciona servicios para continuar</p>
+    </div>
+
+    <div id="summary-details-box" class="summary-details-box">
+      <div id="summary-services-list"></div>
       
-      <!-- Paso 1: Sucursal -->
-      <label for="branch-select">Sucursal:</label>
-      <select id="branch-select" onchange="onBranchChange()">
-        <option value="">-- Seleccionar Sucursal --</option>
-        <option value="sucursal1">Sucursal Centro (Av. Principal 123)</option>
-        <option value="sucursal2">Sucursal Shopping (Local 45)</option>
-      </select>
-
-      <!-- Paso 2: Barbero -->
-      <div id="barber-container" style="display:none">
-        <label for="barber-select">Barbero:</label>
-        <select id="barber-select" onchange="resetSelection()">
-          <option value="">-- Seleccionar Barbero --</option>
-        </select>
+      <div id="summary-pro-line" class="summary-item-line" style="border-top:1px dashed var(--line); padding-top:10px; margin-top:10px; display:none;">
+        <div>
+          <div class="name" id="sum-pro-name">Con cualquier profesional</div>
+          <div class="meta" id="sum-date-time-line">Pendiente de fecha</div>
+        </div>
       </div>
 
-      <!-- Paso 3: Servicio -->
-      <div id="service-container" style="display:none">
-        <label for="service-select">Servicio a Realizar:</label>
-        <select id="service-select">
-          <option value="Corte de Pelo (30 min)">✂️ Corte de Pelo</option>
-          <option value="Perfilado / Arreglo de Barba (20 min)">🧔 Arreglo de Barba</option>
-          <option value="Combo Corte + Barba (50 min)">🔥 Combo Corte + Barba</option>
-        </select>
-
-        <!-- Paso 4: Fecha -->
-        <label for="date-select">Fecha (Martes a Sábado):</label>
-        <select id="date-select" onchange="onDateChange()">
-          <option value="">-- Seleccionar Fecha --</option>
-        </select>
+      <div class="summary-footer">
+        <div class="summary-totals">
+          <span>Duración: <strong id="sum-duration" style="color:#fff;">0 min</strong></span>
+          <span class="price-total" id="sum-total">$ 0</span>
+        </div>
+        <button id="btn-wizard-next" class="btn-continue" disabled onclick="handleWizardNext()">Continuar</button>
       </div>
     </div>
+  </div>
 
-    <!-- Grilla de Horarios -->
-    <div id="slots-container" class="card" style="display:none">
-      <h2>2. Horarios Disponibles</h2>
-      <div class="times" id="times-grid"></div>
+</div>
+
+<!-- MODAL 1: UBICACIONES -->
+<div id="modal-location" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Nuestras Sucursales</h3>
+      <button class="btn-close-modal" onclick="closeModal('modal-location')">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div style="background:#181818; padding:16px; border-radius:12px; border:1px solid var(--line);">
+        <h4 style="font-size:16px; font-weight:700;">Sucursal Centro</h4>
+        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Av. Principal 123, Buenos Aires</p>
+        <a href="https://maps.google.com/?q=Av.+Principal+123+Buenos+Aires" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Abrir en Google Maps 🗺️</a>
+      </div>
+      <div style="background:#181818; padding:16px; border-radius:12px; border:1px solid var(--line);">
+        <h4 style="font-size:16px; font-weight:700;">Sucursal Shopping</h4>
+        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Local 45, Paseo de las Compras</p>
+        <a href="https://maps.google.com/?q=Paseo+de+las+Compras+Buenos+Aires" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Abrir en Google Maps 🗺️</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: ELEGIR PROFESIONAL -->
+<div id="modal-professionals" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Elegir profesional</h3>
+      <button class="btn-close-modal" onclick="closeModal('modal-professionals')">✕</button>
+    </div>
+    <div id="professionals-modal-list">
+      <!-- Dynamically filled -->
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 3: DATOS DEL CLIENTE PARA FINALIZAR -->
+<div id="modal-client-form" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Confirmar Reserva</h3>
+      <button class="btn-close-modal" onclick="closeModal('modal-client-form')">✕</button>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Ingresá tus datos para agendar el turno y enviar la confirmación a WhatsApp.</p>
+    
+    <div class="form-group">
+      <label for="client-name">Nombre y Apellido:</label>
+      <input id="client-name" placeholder="Ej. Gonzalo Pérez">
     </div>
 
-    <!-- Formulario de Datos -->
-    <div id="booking-form" class="card" style="display:none">
-      <h2>3. Datos del Cliente</h2>
-      <label for="patient">Tu Nombre y Apellido:</label>
-      <input id="patient" placeholder="Ej. Gonzalo Pérez">
-
-      <label for="phone">Tu WhatsApp:</label>
-      <input id="phone" placeholder="Ej. 11 5555 5555">
-
-      <button class="btn-main" onclick="confirmBooking()">Confirmar Reserva por WhatsApp 📱</button>
+    <div class="form-group">
+      <label for="client-phone">Teléfono / WhatsApp:</label>
+      <input id="client-phone" placeholder="Ej. 11 5555 5555">
     </div>
-  </section>
-</main>
 
-<footer>
-  <div class="wrap">Barbería & Co. · Martes a Sábados de 10:00 a 20:00 hs</div>
-</footer>
+    <button class="btn-continue" onclick="submitFinalBooking()" style="margin-top:10px;">Confirmar y Enviar a WhatsApp 📱</button>
+  </div>
+</div>
 
 <script>
-// PEGAR AQUÍ TUS CLAVES DE FIREBASE DE TU NUEVO PROYECTO
+// CONFIGURACIÓN DE FIREBASE (Reemplazar con tus claves)
 const firebaseConfig = {
   apiKey: "AIzaSyBX7l9fm8jvUUys2osiYquN0B5JZLgd2DI",
   authDomain: "barberia-demo-22bb4.firebaseapp.com",
@@ -140,207 +952,347 @@ const firebaseConfig = {
   measurementId: "G-T2Y0BLV337"
 };
 
-// Teléfono donde la barbería recibe las notificaciones de las reservas
-const BARBER_PHONE = "5491144058910"; 
+const BARBER_PHONE = "5491144058910";
 
+// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Barberos asignados a cada sucursal
+// DATOS Y ESTADO DE LA APLICACIÓN
 const barbersByBranch = {
-  sucursal1: ["Matias", "Lucas", "Enzo", "Joaquín", "Franco", "Mateo"], // 6 Barberos
-  sucursal2: ["Agustín", "Nicolás", "Santiago", "Tomas", "Benjamín"]    // 5 Barberos
+  sucursal1: [
+    { name: "Cualquier profesional", sub: "Asignación rápida", avatar: "⚡" },
+    { name: "Jesus Calo", sub: "Especialista en degradados", avatar: "👨🏻" },
+    { name: "Alex Wacker", sub: "Experto en tijera & melenas", avatar: "🧔🏻" },
+    { name: "Uriel Ibana", sub: "Especialista en barba", avatar: "👨🏽" },
+    { name: "Uriel Moraiz", sub: "Cortes urbanos & freestyle", avatar: "👨🏼" },
+    { name: "Matias", sub: "Barbero Senior", avatar: "💈" }
+  ],
+  sucursal2: [
+    { name: "Cualquier profesional", sub: "Asignación rápida", avatar: "⚡" },
+    { name: "Agustín", sub: "Especialista en barba & perfilado", avatar: "🧔🏻" },
+    { name: "Nicolás", sub: "Cortes clásicos & tijera", avatar: "👨🏻" },
+    { name: "Santiago", sub: "Fade & Diseños", avatar: "👨🏽" },
+    { name: "Benjamín", sub: "Barbero Senior", avatar: "💈" }
+  ]
 };
 
-// Horarios fijados de 10:00 a 20:00 hs
-const workTimes = [
-  "10:00", "10:40", "11:20", "12:00", "12:40", "13:20", 
-  "14:00", "14:40", "15:20", "16:00", "16:40", "17:20", 
-  "18:00", "18:40", "19:20"
-];
+const workTimes = ["10:00", "10:40", "11:20", "12:00", "12:40", "13:20", "14:00", "14:40", "15:20", "16:00", "16:40", "17:20", "18:00", "18:40", "19:20"];
 
-let currentBookings = [];
-let availableDates = [];
-let selectedSlot = null;
+let currentStep = 1;
+let selectedServices = [];
+let selectedBranch = "sucursal1";
+let selectedPro = barbersByBranch.sucursal1[0];
+let selectedDateStr = "";
+let selectedDateLabel = "";
+let selectedTimeSlot = "";
+let existingBookings = [];
 
-// Escuchar reservas en tiempo real desde Firebase
+// Escuchar cambios de turnos en Firebase en tiempo real
 db.ref("turnos_barberia").on("value", (snapshot) => {
   const data = snapshot.val();
-  currentBookings = [];
-  if(data){
-    Object.keys(data).forEach(key => {
-      currentBookings.push({ id: key, ...data[key] });
-    });
+  existingBookings = [];
+  if(data) {
+    Object.keys(data).forEach(k => existingBookings.push(data[k]));
   }
-  renderSlots();
+  if(currentStep === 4) renderTimeSlots();
 });
 
-function onBranchChange() {
-  const branchSelect = document.getElementById("branch-select");
-  const barberSelect = document.getElementById("barber-select");
-  const barberContainer = document.getElementById("barber-container");
-  
-  const branch = branchSelect.value;
-  barberSelect.innerHTML = '<option value="">-- Seleccionar Barbero --</option>';
+// NAVEGACIÓN Y WIZARD
+function goToStep(stepNum) {
+  currentStep = stepNum;
 
-  if(branch && barbersByBranch[branch]){
-    barbersByBranch[branch].forEach(barber => {
-      const opt = document.createElement("option");
-      opt.value = barber;
-      opt.textContent = barber;
-      barberSelect.appendChild(opt);
-    });
-    barberContainer.style.display = "block";
+  // Modificar visibilidad de pantallas
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  
+  if(stepNum === 1) {
+    document.getElementById('step-1').classList.add('active');
+    document.getElementById('wizard-bar').style.display = 'none';
+    document.getElementById('wizard-container').style.display = 'none';
   } else {
-    barberContainer.style.display = "none";
-  }
-  
-  document.getElementById("service-container").style.display = "none";
-  resetSelection();
-}
+    document.getElementById('wizard-bar').style.display = 'block';
+    document.getElementById('wizard-container').style.display = 'grid';
+    document.getElementById(`step-${stepNum}`).classList.add('active');
 
-function resetSelection(){
-  const barberSelect = document.getElementById("barber-select").value;
-  const serviceContainer = document.getElementById("service-container");
-  
-  if(barberSelect){
-    serviceContainer.style.display = "block";
-    populateDateSelect();
-  } else {
-    serviceContainer.style.display = "none";
-  }
-  document.getElementById("slots-container").style.display = "none";
-  document.getElementById("booking-form").style.display = "none";
-}
-
-// Genera fechas de Martes (2) a Sábado (6)
-function generateAvailableDates() {
-  const dates = [];
-  const today = new Date();
-  const maxDate = new Date();
-  maxDate.setDate(today.getDate() + 30); // Próximos 30 días
-
-  let cursor = new Date(today);
-  while (cursor <= maxDate) {
-    const dayOfWeek = cursor.getDay();
-    if (dayOfWeek >= 2 && dayOfWeek <= 6) {
-      const year = cursor.getFullYear();
-      const month = String(cursor.getMonth() + 1).padStart(2, '0');
-      const day = String(cursor.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-      
-      const dayNames = ["", "", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-      const formattedLabel = `${dayNames[dayOfWeek]} ${day}/${month}/${year}`;
-      
-      dates.push({ dateStr, label: formattedLabel });
+    // Actualizar Badges
+    for(let i = 2; i <= 4; i++) {
+      const b = document.getElementById(`badge-step-${i}`);
+      b.classList.remove('active', 'completed');
+      if(i < stepNum) b.classList.add('completed');
+      if(i === stepNum) b.classList.add('active');
     }
-    cursor.setDate(cursor.getDate() + 1);
+
+    if(stepNum === 3) renderProfessionalsModalList();
+    if(stepNum === 4) {
+      renderCalendarSlider();
+      renderTimeSlots();
+    }
   }
-  return dates;
+  updateSummaryUI();
 }
 
-function populateDateSelect() {
-  const select = document.getElementById("date-select");
-  select.innerHTML = '<option value="">-- Seleccionar Fecha --</option>';
-  availableDates = generateAvailableDates();
-  availableDates.forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d.dateStr;
-    opt.textContent = d.label;
-    select.appendChild(opt);
+function handleWizardNext() {
+  if(currentStep === 2) goToStep(3);
+  else if(currentStep === 3) goToStep(4);
+  else if(currentStep === 4) openModal('modal-client-form');
+}
+
+// GESTIÓN DE SERVICIOS
+function toggleService(name, price, duration, btnEl) {
+  const idx = selectedServices.findIndex(s => s.name === name);
+  if(idx > -1) {
+    selectedServices.splice(idx, 1);
+    btnEl.textContent = "+";
+    btnEl.classList.remove('selected');
+  } else {
+    selectedServices.push({ name, price, duration });
+    btnEl.textContent = "✓";
+    btnEl.classList.add('selected');
+  }
+  updateSummaryUI();
+}
+
+// GESTIÓN DE PROFESIONAL Y SUCURSAL
+function onBranchChange() {
+  selectedBranch = document.getElementById('branch-select').value;
+  selectedPro = barbersByBranch[selectedBranch][0];
+  
+  const branchLabel = selectedBranch === "sucursal1" ? "Sucursal Centro, Buenos Aires" : "Sucursal Shopping, Buenos Aires";
+  document.getElementById('summary-branch-label').textContent = branchLabel;
+
+  updateProDisplay();
+  renderProfessionalsModalList();
+}
+
+function selectProfessional(proObj) {
+  selectedPro = proObj;
+  updateProDisplay();
+  closeModal('modal-professionals');
+  updateSummaryUI();
+}
+
+function updateProDisplay() {
+  document.getElementById('selected-pro-avatar').textContent = selectedPro.avatar;
+  document.getElementById('selected-pro-name').textContent = selectedPro.name;
+  document.getElementById('selected-pro-sub').textContent = selectedPro.sub;
+  document.getElementById('sum-pro-name').textContent = "Con " + selectedPro.name;
+}
+
+function renderProfessionalsModalList() {
+  const container = document.getElementById('professionals-modal-list');
+  container.innerHTML = "";
+  
+  barbersByBranch[selectedBranch].forEach(pro => {
+    const isSel = pro.name === selectedPro.name;
+    const div = document.createElement('div');
+    div.className = `pro-option-item ${isSel ? 'selected' : ''}`;
+    div.onclick = () => selectProfessional(pro);
+    div.innerHTML = `
+      <div class="pro-avatar">${pro.avatar}</div>
+      <div class="pro-info">
+        <h4>${pro.name}</h4>
+        <p>${pro.sub}</p>
+      </div>
+    `;
+    container.appendChild(div);
   });
 }
 
-function onDateChange() {
-  renderSlots();
+// FECHAS Y HORARIOS (PASO 4)
+function renderCalendarSlider() {
+  const slider = document.getElementById('dates-slider');
+  slider.innerHTML = "";
+
+  const today = new Date();
+  const daysOfWeek = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+  const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+  document.getElementById('current-month-label').textContent = `${months[today.getMonth()]} ${today.getFullYear()}`;
+
+  for(let i = 0; i < 20; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() + i);
+
+    const dayNum = d.getDate();
+    const dayName = daysOfWeek[d.getDay()];
+    const dateStr = d.toISOString().split('T')[0];
+    const isSunday = d.getDay() === 0;
+    const isMonday = d.getDay() === 1;
+    const isDisabled = isSunday || isMonday;
+
+    const pill = document.createElement('div');
+    pill.className = `date-pill ${isDisabled ? 'disabled' : ''} ${selectedDateStr === dateStr ? 'active' : ''}`;
+    pill.innerHTML = `
+      <span class="day-name">${dayName}</span>
+      <span class="day-num">${dayNum}</span>
+      ${!isDisabled ? '<span class="dot"></span>' : ''}
+    `;
+
+    if(!isDisabled) {
+      if(!selectedDateStr) {
+        selectedDateStr = dateStr;
+        selectedDateLabel = `${dayName} ${dayNum}/${d.getMonth()+1}`;
+        pill.classList.add('active');
+      }
+      pill.onclick = () => {
+        document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        selectedDateStr = dateStr;
+        selectedDateLabel = `${dayName} ${dayNum}/${d.getMonth()+1}`;
+        selectedTimeSlot = "";
+        renderTimeSlots();
+        updateSummaryUI();
+      };
+    }
+    slider.appendChild(pill);
+  }
 }
 
-function renderSlots() {
-  const branch = document.getElementById("branch-select").value;
-  const barber = document.getElementById("barber-select").value;
-  const dateStr = document.getElementById("date-select").value;
-  const container = document.getElementById("slots-container");
-  const grid = document.getElementById("times-grid");
-
-  if(!branch || !barber || !dateStr) {
-    container.style.display = "none";
-    document.getElementById("booking-form").style.display = "none";
-    return;
-  }
-
+function renderTimeSlots() {
+  const grid = document.getElementById('time-slots-grid');
   grid.innerHTML = "";
 
+  if(!selectedDateStr) return;
+
   workTimes.forEach(time => {
-    // El turno estará ocupado únicamente si coincide: Sucursal + Barbero + Fecha + Hora
-    const isBusy = currentBookings.some(b => 
-      b.branch === branch && b.barber === barber && b.dateStr === dateStr && b.time === time
+    // Un turno está ocupado solo si coincide Sucursal + Barbero + Fecha + Hora
+    const isBusy = existingBookings.some(b => 
+      b.branch === selectedBranch && 
+      (selectedPro.name === "Cualquier profesional" || b.barber === selectedPro.name) && 
+      b.dateStr === selectedDateStr && 
+      b.time === time
     );
 
-    const btn = document.createElement("button");
-    btn.className = "time" + (isBusy ? " busy" : "");
-    btn.textContent = isBusy ? "Ocupado" : time;
+    const btn = document.createElement('button');
+    btn.className = `time-slot-btn ${isBusy ? 'busy' : ''} ${selectedTimeSlot === time ? 'selected' : ''}`;
     btn.disabled = isBusy;
+    btn.innerHTML = `<span>⏰</span> <span>${time} hs</span> ${isBusy ? '<span style="margin-left:auto; font-size:12px; color:#666;">Ocupado</span>' : ''}`;
+    
     if(!isBusy) {
-      btn.onclick = () => selectSlot(time, btn);
+      btn.onclick = () => {
+        document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedTimeSlot = time;
+        updateSummaryUI();
+      };
     }
     grid.appendChild(btn);
   });
-
-  container.style.display = "block";
 }
 
-function selectSlot(time, element) {
-  selectedSlot = time;
-  document.querySelectorAll(".time").forEach(el => el.style.borderColor = "var(--line)");
-  element.style.borderColor = "var(--accent)";
-  document.getElementById("booking-form").style.display = "block";
-  document.getElementById("patient").focus();
-}
+// ACTUALIZAR CARRITO Y RESUMEN LATERAL
+function updateSummaryUI() {
+  const emptyBox = document.getElementById('empty-cart-box');
+  const detailsBox = document.getElementById('summary-details-box');
+  const servicesList = document.getElementById('summary-services-list');
+  const nextBtn = document.getElementById('btn-wizard-next');
 
-function confirmBooking() {
-  const branch = document.getElementById("branch-select").value;
-  const branchName = document.getElementById("branch-select").options[document.getElementById("branch-select").selectedIndex].text;
-  const barber = document.getElementById("barber-select").value;
-  const service = document.getElementById("service-select").value;
-  const dateStr = document.getElementById("date-select").value;
-  const dateLabel = document.getElementById("date-select").options[document.getElementById("date-select").selectedIndex].text;
-  const patient = document.getElementById("patient").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-
-  if(!selectedSlot || !patient || !phone) {
-    alert("Por favor completá tu nombre, WhatsApp y seleccioná un horario.");
+  if(selectedServices.length === 0) {
+    emptyBox.style.display = 'block';
+    detailsBox.style.display = 'none';
+    nextBtn.disabled = true;
     return;
   }
 
-  const newBooking = {
-    branch,
-    branchName,
-    barber,
-    service,
-    dateStr,
-    dateLabel,
-    time: selectedSlot,
-    patient,
-    phone
+  emptyBox.style.display = 'none';
+  detailsBox.style.display = 'block';
+
+  let totalMoney = 0;
+  let totalTime = 0;
+  servicesList.innerHTML = "";
+
+  selectedServices.forEach(s => {
+    totalMoney += s.price;
+    totalTime += s.duration;
+    const div = document.createElement('div');
+    div.className = 'summary-item-line';
+    div.innerHTML = `
+      <div>
+        <div class="name">${s.name}</div>
+        <div class="meta">⏱ ${s.duration} min</div>
+      </div>
+      <div style="font-weight:700;">$ ${s.price.toLocaleString('es-AR')}</div>
+    `;
+    servicesList.appendChild(div);
+  });
+
+  document.getElementById('sum-duration').textContent = `${totalTime} min`;
+  document.getElementById('sum-total').textContent = `$ ${totalMoney.toLocaleString('es-AR')}`;
+
+  // Mostrar línea de profesional y fecha
+  const proLine = document.getElementById('summary-pro-line');
+  const dateTimeLine = document.getElementById('sum-date-time-line');
+  
+  if(currentStep >= 3) {
+    proLine.style.display = 'flex';
+    document.getElementById('sum-pro-name').textContent = "Con " + selectedPro.name;
+    dateTimeLine.textContent = selectedTimeSlot ? `${selectedDateLabel} a las ${selectedTimeSlot} hs` : (selectedDateLabel || "Seleccionar fecha");
+  } else {
+    proLine.style.display = 'none';
+  }
+
+  // Habilitar botón según paso
+  if(currentStep === 2) nextBtn.disabled = false;
+  else if(currentStep === 3) nextBtn.disabled = false;
+  else if(currentStep === 4) nextBtn.disabled = !selectedTimeSlot;
+}
+
+// MODALES
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// FINALIZAR Y ENVIAR RESERVA
+function submitFinalBooking() {
+  const name = document.getElementById('client-name').value.trim();
+  const phone = document.getElementById('client-phone').value.trim();
+
+  if(!name || !phone) {
+    alert("Por favor ingresá tu nombre y teléfono de contacto.");
+    return;
+  }
+
+  const branchName = selectedBranch === "sucursal1" ? "Sucursal Centro (Av. Principal 123)" : "Sucursal Shopping (Local 45)";
+  const serviceNames = selectedServices.map(s => s.name).join(" + ");
+  const totalPrice = selectedServices.reduce((a,b) => a + b.price, 0);
+
+  const bookingData = {
+    branch: selectedBranch,
+    branchName: branchName,
+    barber: selectedPro.name,
+    service: serviceNames,
+    totalPrice: totalPrice,
+    dateStr: selectedDateStr,
+    dateLabel: selectedDateLabel,
+    time: selectedTimeSlot,
+    patient: name,
+    phone: phone
   };
 
-  // Guardar en la base de datos de Firebase
-  db.ref("turnos_barberia").push().set(newBooking, (err) => {
+  db.ref("turnos_barberia").push().set(bookingData, (err) => {
     if(err) {
       alert("Ocurrió un error al guardar la reserva.");
     } else {
-      // Redirección directa al WhatsApp con los detalles
-      const text = encodeURIComponent(
-        `💈 *NUEVA RESERVA - BARBERÍA*\n\n` +
-        `👤 *Cliente:* ${patient}\n` +
-        `📍 *Sucursal:* ${branchName}\n` +
-        `✂️ *Barbero:* ${barber}\n` +
-        `🛠️ *Servicio:* ${service}\n` +
-        `📅 *Fecha:* ${dateLabel}\n` +
-        `⏰ *Hora:* ${selectedSlot} hs\n` +
-        `📱 *Contacto:* ${phone}`
+      const msg = encodeURIComponent(
+        `💈 *NUEVO TURNO CONFIRMADO - ZENIN STUDIO*
+
+` +
+        `👤 *Cliente:* ${name}
+` +
+        `📱 *Teléfono:* ${phone}
+` +
+        `📍 *Sucursal:* ${branchName}
+` +
+        `✂️ *Barbero:* ${selectedPro.name}
+` +
+        `🛠️ *Servicios:* ${serviceNames}
+` +
+        `📅 *Fecha:* ${selectedDateLabel}
+` +
+        `⏰ *Hora:* ${selectedTimeSlot} hs
+` +
+        `💰 *Total:* $ ${totalPrice.toLocaleString('es-AR')}`
       );
-      window.location.href = `https://wa.me/${BARBER_PHONE}?text=${text}`;
+      window.location.href = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
     }
   });
 }
