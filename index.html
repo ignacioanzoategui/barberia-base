@@ -670,7 +670,7 @@ header{
     <div class="admin-filters">
       <div class="admin-filter">
         <label for="admin-branch">Sucursal</label>
-        <select id="admin-branch" onchange="renderReceptionAgenda()">
+        <select id="admin-branch">
           <option value="sucursal1">Sucursal Centro</option>
           <option value="sucursal2">Sucursal Norte</option>
         </select>
@@ -1050,7 +1050,7 @@ db.ref("turnos_demo").on("value", (snapshot) => {
   if(receptionAuthenticated) renderReceptionAgenda();
 });
 
-// AUTO-ACTUALIZAR TIEMPO REAL CADA MINUTO (Para bloquear horarios que pasan en vivo)
+// AUTO-ACTUALIZAR TIEMPO REAL CADA MINUTO
 setInterval(() => {
   if(currentStep === 4) renderTimeSlots();
   if(receptionAuthenticated) renderReceptionAgenda();
@@ -1395,15 +1395,21 @@ function closeModal(id) {
   modal.classList.remove('active');
   if(!document.querySelector('.modal-overlay.active')) document.body.style.overflow = '';
 }
+
 document.querySelectorAll('.modal-overlay').forEach(modal => {
   modal.addEventListener('click', (e) => {
     if(e.target === modal) closeModal(modal.id);
   });
 });
+
+// ESCUCHADOR GLOBAL DE TECLADO (Atiende Enter y Escape sin sobreescribir)
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
     const active = document.querySelector('.modal-overlay.active');
     if(active) closeModal(active.id);
+  }
+  if(e.key === 'Enter' && document.activeElement?.id === 'reception-password') {
+    receptionLogin();
   }
 });
 
@@ -1451,12 +1457,6 @@ function receptionLogout() {
   receptionAuthenticated = false;
   goToStep(1);
 }
-
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' && document.activeElement?.id === 'reception-password') {
-    receptionLogin();
-  }
-});
 
 function todayDateString() {
   const d = new Date();
@@ -1523,7 +1523,6 @@ function renderReceptionAgenda() {
   const visiblePros = proFilter === 'ALL' ? pros : pros.filter(p => p.name === proFilter);
   const bookings = getAdminBookings(branch, dateStr, proFilter);
 
-  // Calcular si la fecha seleccionada es hoy para validar la hora actual
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1668,8 +1667,17 @@ function submitFinalBooking() {
   if (assignedBarber === "Sin preferencia de profesional") {
     const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
     if (realPros.length > 0) {
-      const randomIndex = Math.floor(Math.random() * realPros.length);
-      assignedBarber = realPros[randomIndex].name;
+      const freePros = realPros.filter(p => 
+        !existingBookings.some(b => 
+          b.branch === selectedBranch && 
+          b.barber === p.name && 
+          b.dateStr === selectedDateStr && 
+          b.time === selectedTimeSlot
+        )
+      );
+      const pool = freePros.length > 0 ? freePros : realPros;
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      assignedBarber = pool[randomIndex].name;
     }
   }
 
@@ -1733,9 +1741,10 @@ function submitFinalBooking() {
     if(redirectTimer) clearInterval(redirectTimer);
     redirectTimer = setInterval(() => {
       secondsLeft--;
-      counterEl.textContent = secondsLeft;
+      if(counterEl) counterEl.textContent = secondsLeft;
       if(secondsLeft <= 0) {
         clearInterval(redirectTimer);
+        redirectTimer = null;
         redirectToWhatsAppNow();
       }
     }, 1000);
@@ -1745,7 +1754,10 @@ function submitFinalBooking() {
 }
 
 function redirectToWhatsAppNow() {
-  if(redirectTimer) clearInterval(redirectTimer);
+  if(redirectTimer) {
+    clearInterval(redirectTimer);
+    redirectTimer = null;
+  }
   if(pendingWhatsAppUrl) {
     window.location.href = pendingWhatsAppUrl;
   }
