@@ -32,6 +32,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-bottom: 90px; /* Espacio para el carrito flotante móvil */
+}
+
+@media (min-width: 881px) {
+  body { padding-bottom: 0; }
 }
 
 /* Header Navbar */
@@ -235,18 +240,18 @@ header {
   margin: 0 10px;
 }
 
-/* WIZARD CONTENT CONTAINER (Ajustado para mantener el carrito visible al costado) */
+/* WIZARD CONTENT CONTAINER */
 .wizard-body {
   max-width: 1100px;
   margin: 20px auto;
   padding: 0 16px;
   display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 16px;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
 }
 
 @media (max-width: 880px) {
-  .wizard-body { grid-template-columns: 1fr; }
+  .wizard-body { grid-template-columns: 1fr; margin-bottom: 100px; }
 }
 
 /* LEFT CONTENT COLUMN */
@@ -255,17 +260,17 @@ header {
 }
 
 .section-title-box {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section-title-box h2 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
 }
 
 .section-title-box p {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
   margin-top: 4px;
 }
 
@@ -274,8 +279,8 @@ header {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 16px;
-  padding: 18px 20px;
-  margin-bottom: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -284,29 +289,29 @@ header {
 
 .service-item:hover { border-color: #444; }
 
-.service-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.service-info p { color: var(--text-muted); font-size: 13px; }
+.service-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.service-info p { color: var(--text-muted); font-size: 12px; }
 
 .service-price-btn {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .service-price {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   text-align: right;
 }
 
 .btn-add {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--line);
   background: var(--gray-button);
   color: var(--text);
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -325,52 +330,52 @@ header {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 16px;
-  padding: 20px;
+  padding: 18px;
   margin-bottom: 20px;
 }
 
 .pro-select-trigger {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 16px;
+  padding: 14px;
   background: #181818;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .pro-select-trigger:hover { border-color: var(--white); }
 
 /* HORIZONTAL CALENDAR SLIDER */
 .calendar-container {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-.calendar-header h3 { font-size: 16px; font-weight: 700; }
+.calendar-header h3 { font-size: 15px; font-weight: 700; }
 
 .dates-slider {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   scroll-behavior: smooth;
 }
 
-.dates-slider::-webkit-scrollbar { height: 6px; }
-.dates-slider::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.dates-slider::-webkit-scrollbar { height: 4px; }
+.dates-slider::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
 
 .date-pill {
-  min-width: 56px;
-  height: 65px;
+  min-width: 52px;
+  height: 60px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
@@ -383,42 +388,43 @@ header {
   transition: all 0.2s;
 }
 
-.date-pill .day-name { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
-.date-pill .day-num { font-size: 16px; font-weight: 800; }
-.date-pill .dot { width: 4px; height: 4px; background: #4cd964; border-radius: 50%; margin-top: 4px; }
+.date-pill .day-name { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+.date-pill .day-num { font-size: 15px; font-weight: 800; margin-top: 2px; }
+.date-pill .dot { width: 4px; height: 4px; background: #4cd964; border-radius: 50%; margin-top: 3px; }
 
 .date-pill:hover { border-color: #555; }
 .date-pill.active { background: var(--white); color: #000; border-color: var(--white); }
 .date-pill.active .day-name { color: #555; }
 .date-pill.disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* TIME SLOTS (Grid compacta de 2 columnas para reducir espacio) */
+/* TIME SLOTS - MÁS CHICO PARA CELULARES */
 .time-slots-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .time-slot-btn {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%;
 }
 
 .time-slot-btn:hover { border-color: var(--white); }
 .time-slot-btn.selected { border-color: var(--white); background: #282828; }
 .time-slot-btn.busy { opacity: 0.35; text-decoration: line-through; cursor: not-allowed; }
 
-/* RIGHT SIDEBAR SUMMARY CARD */
+/* RIGHT SIDEBAR SUMMARY CARD & DESPLEGABLE EN MÓVIL */
 .summary-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -427,6 +433,55 @@ header {
   position: sticky;
   top: 140px;
   height: fit-content;
+  transition: max-height 0.3s ease, transform 0.3s ease;
+}
+
+/* COMPORTAMIENTO MÓVIL (CARRITO FLOTANTE DESPLEGABLE ABAJO) */
+.cart-toggle-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 880px) {
+  .summary-card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    z-index: 150;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.8);
+    padding: 14px 18px;
+    background: #181818;
+  }
+
+  .cart-toggle-btn {
+    display: flex;
+  }
+
+  .summary-card.collapsed .cart-collapsible-content {
+    display: none !important;
+  }
+
+  .summary-card.collapsed {
+    padding-bottom: 14px;
+  }
+
+  .shop-brand {
+    display: none; /* Ocultar branding repetido en móvil para ahorrar espacio */
+  }
 }
 
 .shop-brand {
@@ -456,20 +511,20 @@ header {
 
 .empty-cart {
   text-align: center;
-  padding: 30px 10px;
+  padding: 20px 10px;
   color: var(--text-muted);
 }
 
 .empty-cart-icon {
-  width: 40px;
-  height: 40px;
-  background: #181818;
+  width: 36px;
+  height: 36px;
+  background: #222;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 10px;
-  font-size: 18px;
+  margin: 0 auto 8px;
+  font-size: 16px;
 }
 
 .summary-details-box {
@@ -479,7 +534,7 @@ header {
 .summary-item-line {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-size: 13px;
 }
 
@@ -487,8 +542,8 @@ header {
 .summary-item-line .meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 .summary-footer {
-  margin-top: 20px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid var(--line);
 }
 
@@ -498,7 +553,7 @@ header {
   align-items: center;
   font-size: 13px;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .summary-totals .price-total {
@@ -512,7 +567,7 @@ header {
   background: var(--white);
   color: #000;
   border: none;
-  padding: 14px;
+  padding: 12px;
   border-radius: 12px;
   font-weight: 800;
   font-size: 14px;
@@ -600,14 +655,14 @@ header {
 .pro-option-item.selected { border-color: var(--white); background: #222; }
 
 .pro-avatar {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--accent);
   overflow: hidden;
@@ -660,12 +715,12 @@ header {
 <!-- HEADER NAVBAR -->
 <header>
   <div class="nav-container">
-    <div class="brand-logo" onclick="goToStep(1)">LUMEN <span>STUDIO</span></div>
+    <!-- Cambio de Nombre a BARBER DEMO -->
+    <div class="brand-logo" onclick="goToStep(1)">BARBER <span>DEMO</span></div>
     <div class="nav-actions">
       <button class="btn-outline" onclick="openModal('modal-location')">
         📍 UBICACIÓN
       </button>
-      <!-- Se eliminó el botón 'Reservar turno' del header -->
     </div>
   </div>
 </header>
@@ -673,7 +728,7 @@ header {
 <!-- STEP 1: LANDING PAGE VIEW -->
 <div id="step-1" class="view active">
   <div class="hero-section">
-    <div class="hero-subtitle-tag">— SISTEMA DE RESERVAS & AGENDA —</div>
+    <div class="hero-subtitle-tag">— BARBER DEMO · SISTEMA DE RESERVAS —</div>
     <h1 class="hero-title">Tu turno agendado,<br>en <i>pocos segundos</i>.</h1>
     <p class="hero-desc">Elegí la sede, elegí tu profesional de confianza y reservá tu horario al instante sin complicaciones.</p>
     
@@ -725,7 +780,7 @@ header {
       <div class="service-item">
         <div class="service-info">
           <h3>Corte & Estilo General</h3>
-          <p>⏱ 40 minutos · Asesoramiento personalizado + Lavado y peinado</p>
+          <p>⏱ 40 min · Asesoramiento personalizado + Lavado</p>
         </div>
         <div class="service-price-btn">
           <div class="service-price">$ 18.000</div>
@@ -736,7 +791,7 @@ header {
       <div class="service-item">
         <div class="service-info">
           <h3>Servicio Combo Premium</h3>
-          <p>⏱ 50 minutos · Corte de cabello + Perfilado y tratamiento facial express</p>
+          <p>⏱ 50 min · Corte + Perfilado y tratamiento facial</p>
         </div>
         <div class="service-price-btn">
           <div class="service-price">$ 24.000</div>
@@ -747,7 +802,7 @@ header {
       <div class="service-item">
         <div class="service-info">
           <h3>Tratamiento Capilar Integral</h3>
-          <p>⏱ 60 minutos · Corte especializado, nutrimascarilla y modelado</p>
+          <p>⏱ 60 min · Corte especializado + Nutrimascarilla</p>
         </div>
         <div class="service-price-btn">
           <div class="service-price">$ 28.000</div>
@@ -758,7 +813,7 @@ header {
       <div class="service-item">
         <div class="service-info">
           <h3>Diseño y Perfilado</h3>
-          <p>⏱ 30 minutos · Ritual completo de perfilado y definición</p>
+          <p>⏱ 30 min · Ritual completo de perfilado y definición</p>
         </div>
         <div class="service-price-btn">
           <div class="service-price">$ 12.000</div>
@@ -790,8 +845,8 @@ header {
           <div style="display:flex; align-items:center; gap:12px;">
             <div id="selected-pro-avatar" class="pro-avatar">⚡</div>
             <div>
-              <h4 id="selected-pro-name" style="font-size:16px; font-weight:700;">Sin preferencia de profesional</h4>
-              <p id="selected-pro-sub" style="font-size:13px; color:var(--text-muted);">Asignación según disponibilidad</p>
+              <h4 id="selected-pro-name" style="font-size:15px; font-weight:700;">Sin preferencia de profesional</h4>
+              <p id="selected-pro-sub" style="font-size:12px; color:var(--text-muted);">Asignación según disponibilidad</p>
             </div>
           </div>
           <span style="font-size:13px; color:var(--accent); font-weight:700;">Cambiar ➔</span>
@@ -816,9 +871,9 @@ header {
         </div>
       </div>
 
-      <!-- HORARIOS DISPONIBLES -->
-      <div class="section-title-box" style="margin-top:20px;">
-        <h3 style="font-size:16px;">Horarios disponibles:</h3>
+      <!-- HORARIOS DISPONIBLES (TAMAÑO MÁS PEQUEÑO EN MÓVIL) -->
+      <div class="section-title-box" style="margin-top:16px; margin-bottom:12px;">
+        <h3 style="font-size:15px;">Horarios disponibles:</h3>
       </div>
       <div id="time-slots-grid" class="time-slots-grid">
         <!-- Dynamically populated -->
@@ -827,40 +882,52 @@ header {
 
   </div>
 
-  <!-- RIGHT COLUMN SUMMARY CARD -->
-  <div class="summary-card">
+  <!-- RIGHT SIDEBAR / BOTTOM FLOATING SUMMARY CARD -->
+  <div id="summary-card" class="summary-card collapsed">
+    
+    <!-- Botón desplegable sólo para vistas móviles -->
+    <button class="cart-toggle-btn" onclick="toggleCartMobile()">
+      <span>🛍️ Resumen del Pedido</span>
+      <span id="cart-arrow-icon">▲ Detalle</span>
+    </button>
+
     <div class="shop-brand">
-      <div class="shop-logo">L</div>
+      <div class="shop-logo">B</div>
       <div class="shop-details">
-        <h4>LUMEN STUDIO</h4>
+        <h4>BARBER DEMO</h4>
         <p id="summary-branch-label">Sucursal Centro</p>
       </div>
     </div>
 
-    <div id="empty-cart-box" class="empty-cart">
-      <div class="empty-cart-icon">🛍️</div>
-      <p style="font-size:14px; font-weight:600;">Tu carrito está vacío</p>
-      <p style="font-size:12px; margin-top:4px;">Selecciona opciones para continuar</p>
-    </div>
-
-    <div id="summary-details-box" class="summary-details-box">
-      <div id="summary-services-list"></div>
-      
-      <div id="summary-pro-line" class="summary-item-line" style="border-top:1px dashed var(--line); padding-top:10px; margin-top:10px; display:none;">
-        <div>
-          <div class="name" id="sum-pro-name">Sin preferencia de profesional</div>
-          <div class="meta" id="sum-date-time-line">Pendiente de fecha</div>
-        </div>
+    <!-- Contenido colapsable en móvil -->
+    <div class="cart-collapsible-content">
+      <div id="empty-cart-box" class="empty-cart">
+        <div class="empty-cart-icon">🛍️</div>
+        <p style="font-size:13px; font-weight:600;">Tu carrito está vacío</p>
+        <p style="font-size:11px; margin-top:2px;">Selecciona opciones para continuar</p>
       </div>
 
-      <div class="summary-footer">
-        <div class="summary-totals">
-          <span>Duración: <strong id="sum-duration" style="color:#fff;">0 min</strong></span>
-          <span class="price-total" id="sum-total">$ 0</span>
+      <div id="summary-details-box" class="summary-details-box">
+        <div id="summary-services-list"></div>
+        
+        <div id="summary-pro-line" class="summary-item-line" style="border-top:1px dashed var(--line); padding-top:8px; margin-top:8px; display:none;">
+          <div>
+            <div class="name" id="sum-pro-name">Sin preferencia de profesional</div>
+            <div class="meta" id="sum-date-time-line">Pendiente de fecha</div>
+          </div>
         </div>
-        <button id="btn-wizard-next" class="btn-continue" disabled onclick="handleWizardNext()">Continuar</button>
       </div>
     </div>
+
+    <!-- El pie con total y botón Continuar SIEMPRE VISIBLE en móvil -->
+    <div class="summary-footer">
+      <div class="summary-totals">
+        <span>Duración: <strong id="sum-duration" style="color:#fff;">0 min</strong></span>
+        <span class="price-total" id="sum-total">$ 0</span>
+      </div>
+      <button id="btn-wizard-next" class="btn-continue" disabled onclick="handleWizardNext()">Continuar</button>
+    </div>
+
   </div>
 
 </div>
@@ -924,7 +991,7 @@ header {
 </div>
 
 <script>
-// CONFIGURACIÓN DE FIREBASE (Servidor Demo / Reemplazable)
+// CONFIGURACIÓN DE FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyBX7l9fm8jvUUys2osiYquN0B5JZLgd2DI",
   authDomain: "barberia-demo-22bb4.firebaseapp.com",
@@ -976,6 +1043,20 @@ db.ref("turnos_demo").on("value", (snapshot) => {
   }
   if(currentStep === 4) renderTimeSlots();
 });
+
+// DESPLEGAR / COLAPSAR CARRITO EN MÓVIL
+function toggleCartMobile() {
+  const cartCard = document.getElementById('summary-card');
+  const arrowIcon = document.getElementById('cart-arrow-icon');
+  
+  if (cartCard.classList.contains('collapsed')) {
+    cartCard.classList.remove('collapsed');
+    arrowIcon.textContent = "▼ Ocultar";
+  } else {
+    cartCard.classList.add('collapsed');
+    arrowIcon.textContent = "▲ Detalle";
+  }
+}
 
 // NAVEGACIÓN Y WIZARD
 function goToStep(stepNum) {
@@ -1075,12 +1156,12 @@ function renderProfessionalsModalList() {
   });
 }
 
-// FECHAS Y HORARIOS (PASO 4) - Se actualiza automáticamente cada día eliminando el pasado
+// FECHAS Y HORARIOS (PASO 4)
 function renderCalendarSlider() {
   const slider = document.getElementById('dates-slider');
   slider.innerHTML = "";
 
-  const today = new Date(); // Toma siempre el día actual
+  const today = new Date();
   const daysOfWeek = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
   const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -1093,7 +1174,6 @@ function renderCalendarSlider() {
     const dayNum = d.getDate();
     const dayName = daysOfWeek[d.getDay()];
     
-    // Formatear AAAA-MM-DD local
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -1147,7 +1227,7 @@ function renderTimeSlots() {
     const btn = document.createElement('button');
     btn.className = `time-slot-btn ${isBusy ? 'busy' : ''} ${selectedTimeSlot === time ? 'selected' : ''}`;
     btn.disabled = isBusy;
-    btn.innerHTML = `<span>⏰</span> <span>${time} hs</span> ${isBusy ? '<span style="margin-left:auto; font-size:11px; color:#666;">Ocupado</span>' : ''}`;
+    btn.innerHTML = `<span>⏰ ${time} hs</span> <span>${isBusy ? 'Occup.' : '✓'}</span>`;
     
     if(!isBusy) {
       btn.onclick = () => {
@@ -1249,7 +1329,7 @@ function submitFinalBooking() {
 
   db.ref("turnos_demo").push().set(bookingData, (err) => {
     const msg = encodeURIComponent(
-      `📅 *CONFIRMACIÓN DE TURNO - DEMO*\n\n` +
+      `📅 *CONFIRMACIÓN DE TURNO - BARBER DEMO*\n\n` +
       `👤 *Cliente:* ${name}\n` +
       `📱 *Teléfono:* ${phone}\n` +
       `📍 *Sucursal:* ${branchName}\n` +
