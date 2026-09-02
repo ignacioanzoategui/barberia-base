@@ -670,7 +670,7 @@ header{
     <div class="admin-filters">
       <div class="admin-filter">
         <label for="admin-branch">Sucursal</label>
-        <select id="admin-branch">
+        <select id="admin-branch" onchange="renderReceptionAgenda()">
           <option value="sucursal1">Sucursal Centro</option>
           <option value="sucursal2">Sucursal Norte</option>
         </select>
@@ -983,11 +983,11 @@ header{
       </div>
 
       <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">
-        Redirigiendo a WhatsApp en <strong id="redirect-counter" style="color:var(--accent);">5</strong> segundos para enviar el comprobante...
+        Reserva guardada correctamente. Ahora enviá el mensaje a la barbería por WhatsApp.
       </p>
 
       <button id="btn-go-whatsapp" class="btn-continue" style="background:#25D366; color:#fff;" onclick="redirectToWhatsAppNow()">
-        Abrir WhatsApp Ahora 💬
+        Enviar confirmación por WhatsApp →
       </button>
     </div>
   </div>
@@ -1050,7 +1050,7 @@ db.ref("turnos_demo").on("value", (snapshot) => {
   if(receptionAuthenticated) renderReceptionAgenda();
 });
 
-// AUTO-ACTUALIZAR TIEMPO REAL CADA MINUTO
+// AUTO-ACTUALIZAR TIEMPO REAL CADA MINUTO (Para bloquear horarios que pasan en vivo)
 setInterval(() => {
   if(currentStep === 4) renderTimeSlots();
   if(receptionAuthenticated) renderReceptionAgenda();
@@ -1300,12 +1300,31 @@ function renderTimeSlots() {
 
     const isPast = isToday && (slotMinutes <= currentMinutes);
 
-    const isBusy = existingBookings.some(b => 
-      b.branch === selectedBranch && 
-      (selectedPro.name === "Sin preferencia de profesional" || b.barber === selectedPro.name) && 
-      b.dateStr === selectedDateStr && 
-      b.time === time
-    );
+    // Un horario pertenece a un profesional, no a toda la sucursal.
+    // Si el cliente elige un profesional concreto, solo se bloquea si ESE profesional
+    // tiene una reserva. Si elige "Sin preferencia", se bloquea únicamente cuando
+    // TODOS los profesionales de la sucursal están ocupados en ese horario.
+    const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
+    const isBusyForSelectedPro = selectedPro.name !== "Sin preferencia de profesional" &&
+      existingBookings.some(b =>
+        b.branch === selectedBranch &&
+        b.barber === selectedPro.name &&
+        b.dateStr === selectedDateStr &&
+        b.time === time &&
+        b.status !== 'cancelled'
+      );
+
+    const freeProsForSlot = realPros.filter(pro => !existingBookings.some(b =>
+      b.branch === selectedBranch &&
+      b.barber === pro.name &&
+      b.dateStr === selectedDateStr &&
+      b.time === time &&
+      b.status !== 'cancelled'
+    ));
+
+    const isBusy = selectedPro.name === "Sin preferencia de profesional"
+      ? freeProsForSlot.length === 0
+      : isBusyForSelectedPro;
 
     const isDisabled = isBusy || isPast;
 
@@ -1395,21 +1414,15 @@ function closeModal(id) {
   modal.classList.remove('active');
   if(!document.querySelector('.modal-overlay.active')) document.body.style.overflow = '';
 }
-
 document.querySelectorAll('.modal-overlay').forEach(modal => {
   modal.addEventListener('click', (e) => {
     if(e.target === modal) closeModal(modal.id);
   });
 });
-
-// ESCUCHADOR GLOBAL DE TECLADO (Atiende Enter y Escape sin sobreescribir)
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
     const active = document.querySelector('.modal-overlay.active');
     if(active) closeModal(active.id);
-  }
-  if(e.key === 'Enter' && document.activeElement?.id === 'reception-password') {
-    receptionLogin();
   }
 });
 
@@ -1457,6 +1470,12 @@ function receptionLogout() {
   receptionAuthenticated = false;
   goToStep(1);
 }
+
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && document.activeElement?.id === 'reception-password') {
+    receptionLogin();
+  }
+});
 
 function todayDateString() {
   const d = new Date();
@@ -1523,6 +1542,7 @@ function renderReceptionAgenda() {
   const visiblePros = proFilter === 'ALL' ? pros : pros.filter(p => p.name === proFilter);
   const bookings = getAdminBookings(branch, dateStr, proFilter);
 
+  // Calcular si la fecha seleccionada es hoy para validar la hora actual
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1660,24 +1680,53 @@ function submitFinalBooking() {
     return;
   }
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Procesando...";
+  if(!selectedDateStr || !selectedTimeSlot || !selectedServices.length) {
+    alert("Completá el servicio, la fecha y el horario antes de confirmar.");
+    return;
+  }
 
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Confirmando...";
+
+  const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
+
+  // Si el cliente pidió "cualquier profesional", asignamos SOLO a uno que esté libre.
+  // Antes se elegía al azar entre todos y podía caer en uno ya ocupado.
   let assignedBarber = selectedPro.name;
   if (assignedBarber === "Sin preferencia de profesional") {
-    const realPros = barbersByBranch[selectedBranch].filter(p => p.name !== "Sin preferencia de profesional");
-    if (realPros.length > 0) {
-      const freePros = realPros.filter(p => 
-        !existingBookings.some(b => 
-          b.branch === selectedBranch && 
-          b.barber === p.name && 
-          b.dateStr === selectedDateStr && 
-          b.time === selectedTimeSlot
-        )
-      );
-      const pool = freePros.length > 0 ? freePros : realPros;
-      const randomIndex = Math.floor(Math.random() * pool.length);
-      assignedBarber = pool[randomIndex].name;
+    const availablePros = realPros.filter(pro => !existingBookings.some(b =>
+      b.branch === selectedBranch &&
+      b.barber === pro.name &&
+      b.dateStr === selectedDateStr &&
+      b.time === selectedTimeSlot &&
+      b.status !== 'cancelled'
+    ));
+
+    if(!availablePros.length) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Confirmar reserva <span style="margin-left:7px">→</span>';
+      alert("Ese horario acaba de ocuparse para todos los profesionales disponibles. Elegí otro horario.");
+      renderTimeSlots();
+      return;
+    }
+
+    assignedBarber = availablePros[0].name;
+  } else {
+    // Verificación final para evitar reservar un horario que acaba de ser tomado.
+    const alreadyBooked = existingBookings.some(b =>
+      b.branch === selectedBranch &&
+      b.barber === assignedBarber &&
+      b.dateStr === selectedDateStr &&
+      b.time === selectedTimeSlot &&
+      b.status !== 'cancelled'
+    );
+
+    if(alreadyBooked) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Confirmar reserva <span style="margin-left:7px">→</span>';
+      alert("Ese horario acaba de ser reservado por otra persona. Elegí otro horario.");
+      renderTimeSlots();
+      return;
     }
   }
 
@@ -1708,7 +1757,8 @@ function submitFinalBooking() {
       return;
     }
 
-    // Llenar pantalla de confirmación
+    // La reserva ya quedó guardada en Firebase. A partir de este momento
+    // se considera confirmada y mostramos el comprobante antes de abrir WhatsApp.
     document.getElementById('conf-client-name').textContent = name;
     document.getElementById('conf-branch-name').textContent = branchName;
     document.getElementById('conf-barber-name').textContent = assignedBarber;
@@ -1729,35 +1779,25 @@ function submitFinalBooking() {
 
     pendingWhatsAppUrl = `https://wa.me/${BARBER_PHONE}?text=${msg}`;
 
-    // Mostrar estado de éxito en el modal
     document.getElementById('booking-form-state').style.display = 'none';
     document.getElementById('booking-success-state').style.display = 'block';
 
-    // Iniciar contador regresivo
-    let secondsLeft = 5;
+    // No podemos saber desde una web si el usuario realmente pulsó "Enviar"
+    // dentro de WhatsApp. Dejamos la confirmación visible y abrimos WhatsApp
+    // desde un botón para que el cliente envíe el mensaje conscientemente.
     const counterEl = document.getElementById('redirect-counter');
-    counterEl.textContent = secondsLeft;
+    if(counterEl) {
+      counterEl.textContent = '✓';
+      counterEl.parentElement.innerHTML = '<strong style="color:var(--accent)">Reserva confirmada.</strong> Ahora enviá el mensaje en WhatsApp para avisarle a la barbería.';
+    }
 
     if(redirectTimer) clearInterval(redirectTimer);
-    redirectTimer = setInterval(() => {
-      secondsLeft--;
-      if(counterEl) counterEl.textContent = secondsLeft;
-      if(secondsLeft <= 0) {
-        clearInterval(redirectTimer);
-        redirectTimer = null;
-        redirectToWhatsAppNow();
-      }
-    }, 1000);
-
-    resetFormState();
+    redirectTimer = null;
   });
 }
 
 function redirectToWhatsAppNow() {
-  if(redirectTimer) {
-    clearInterval(redirectTimer);
-    redirectTimer = null;
-  }
+  if(redirectTimer) clearInterval(redirectTimer);
   if(pendingWhatsAppUrl) {
     window.location.href = pendingWhatsAppUrl;
   }
