@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Barbería & Co. | Reserva de Turnos</title>
+
+<!-- Scripts de Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+:root{
+  --bg:#121212; --card:#1e1e1e; --text:#f5f5f5; --muted:#a0a0a0;
+  --accent:#d4af37; /* Dorado Elegante */
+  --accent-hover:#b59226; --line:#333; --danger:#cf6679;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:var(--bg)}
+header{background:#0a0a0a;border-bottom:2px solid var(--accent);padding:15px 0}
+.wrap{max-width:980px;margin:auto;padding:0 20px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.brand{font-weight:900;font-size:22px;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
+.badge{font-size:13px;color:var(--muted)}
+
+.hero{text-align:center;padding:40px 0 30px}
+.hero h1{font-size:clamp(30px,5vw,48px);margin:10px 0;text-transform:uppercase;letter-spacing:1px}
+.hero p{font-size:16px;color:var(--muted);max-width:500px;margin:auto}
+
+.section{padding:20px 0 50px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px}
+.card h2{margin-top:0;font-size:20px;color:var(--accent)}
+
+label{display:block;font-size:14px;font-weight:700;margin:16px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+select, input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:#2a2a2a;color:#fff}
+select:focus, input:focus{outline:none;border-color:var(--accent)}
+
+.times{display:grid;grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));gap:10px;margin-top:10px}
+.time{border:1px solid var(--line);background:#252525;color:#fff;border-radius:10px;padding:12px;text-align:center;font-size:15px;font-weight:700;cursor:pointer}
+.time:hover{border-color:var(--accent);color:var(--accent)}
+.time.busy{background:#181818;color:#555;cursor:not-allowed;text-decoration:line-through;border-color:#222}
+
+button.btn-main{
+  width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;
+  padding:16px;font-weight:900;font-size:17px;cursor:pointer;text-transform:uppercase;margin-top:20px;
+}
+button.btn-main:hover{background:var(--accent-hover)}
+
+footer{text-align:center;padding:30px 0;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div>
+      <div class="brand">✂️ Barbería & Co.</div>
+      <div class="badge">Estilo & Tradición</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Reserva tu Turno</h1>
+    <p>Seleccioná tu sucursal, tu barbero de confianza y el servicio que deseas realizarte.</p>
+  </section>
+
+  <section class="section">
+    <div class="card">
+      <h2>1. Configuración de la Reserva</h2>
+      
+      <!-- Paso 1: Sucursal -->
+      <label for="branch-select">Sucursal:</label>
+      <select id="branch-select" onchange="onBranchChange()">
+        <option value="">-- Seleccionar Sucursal --</option>
+        <option value="sucursal1">Sucursal Centro (Av. Principal 123)</option>
+        <option value="sucursal2">Sucursal Shopping (Local 45)</option>
+      </select>
+
+      <!-- Paso 2: Barbero -->
+      <div id="barber-container" style="display:none">
+        <label for="barber-select">Barbero:</label>
+        <select id="barber-select" onchange="resetSelection()">
+          <option value="">-- Seleccionar Barbero --</option>
+        </select>
+      </div>
+
+      <!-- Paso 3: Servicio -->
+      <div id="service-container" style="display:none">
+        <label for="service-select">Servicio a Realizar:</label>
+        <select id="service-select">
+          <option value="Corte de Pelo (30 min)">✂️ Corte de Pelo</option>
+          <option value="Perfilado / Arreglo de Barba (20 min)">🧔 Arreglo de Barba</option>
+          <option value="Combo Corte + Barba (50 min)">🔥 Combo Corte + Barba</option>
+        </select>
+
+        <!-- Paso 4: Fecha -->
+        <label for="date-select">Fecha (Martes a Sábado):</label>
+        <select id="date-select" onchange="onDateChange()">
+          <option value="">-- Seleccionar Fecha --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Grilla de Horarios -->
+    <div id="slots-container" class="card" style="display:none">
+      <h2>2. Horarios Disponibles</h2>
+      <div class="times" id="times-grid"></div>
+    </div>
+
+    <!-- Formulario de Datos -->
+    <div id="booking-form" class="card" style="display:none">
+      <h2>3. Datos del Cliente</h2>
+      <label for="patient">Tu Nombre y Apellido:</label>
+      <input id="patient" placeholder="Ej. Gonzalo Pérez">
+
+      <label for="phone">Tu WhatsApp:</label>
+      <input id="phone" placeholder="Ej. 11 5555 5555">
+
+      <button class="btn-main" onclick="confirmBooking()">Confirmar Reserva por WhatsApp 📱</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Barbería & Co. · Martes a Sábados de 10:00 a 20:00 hs</div>
+</footer>
+
+<script>
+// PEGAR AQUÍ TUS CLAVES DE FIREBASE DE TU NUEVO PROYECTO
+const firebaseConfig = {
+  apiKey: "AIzaSyBX7l9fm8jvUUys2osiYquN0B5JZLgd2DI",
+  authDomain: "barberia-demo-22bb4.firebaseapp.com",
+  databaseURL: "https://barberia-demo-22bb4-default-rtdb.firebaseio.com",
+  projectId: "barberia-demo-22bb4",
+  storageBucket: "barberia-demo-22bb4.firebasestorage.app",
+  messagingSenderId: "360287665229",
+  appId: "1:360287665229:web:b0c48af17c5dbec7fdb004",
+  measurementId: "G-T2Y0BLV337"
+};
+
+// Teléfono donde la barbería recibe las notificaciones de las reservas
+const BARBER_PHONE = "5491144058910"; 
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Barberos asignados a cada sucursal
+const barbersByBranch = {
+  sucursal1: ["Matias", "Lucas", "Enzo", "Joaquín", "Franco", "Mateo"], // 6 Barberos
+  sucursal2: ["Agustín", "Nicolás", "Santiago", "Tomas", "Benjamín"]    // 5 Barberos
+};
+
+// Horarios fijados de 10:00 a 20:00 hs
+const workTimes = [
+  "10:00", "10:40", "11:20", "12:00", "12:40", "13:20", 
+  "14:00", "14:40", "15:20", "16:00", "16:40", "17:20", 
+  "18:00", "18:40", "19:20"
+];
+
+let currentBookings = [];
+let availableDates = [];
+let selectedSlot = null;
+
+// Escuchar reservas en tiempo real desde Firebase
+db.ref("turnos_barberia").on("value", (snapshot) => {
+  const data = snapshot.val();
+  currentBookings = [];
+  if(data){
+    Object.keys(data).forEach(key => {
+      currentBookings.push({ id: key, ...data[key] });
+    });
+  }
+  renderSlots();
+});
+
+function onBranchChange() {
+  const branchSelect = document.getElementById("branch-select");
+  const barberSelect = document.getElementById("barber-select");
+  const barberContainer = document.getElementById("barber-container");
+  
+  const branch = branchSelect.value;
+  barberSelect.innerHTML = '<option value="">-- Seleccionar Barbero --</option>';
+
+  if(branch && barbersByBranch[branch]){
+    barbersByBranch[branch].forEach(barber => {
+      const opt = document.createElement("option");
+      opt.value = barber;
+      opt.textContent = barber;
+      barberSelect.appendChild(opt);
+    });
+    barberContainer.style.display = "block";
+  } else {
+    barberContainer.style.display = "none";
+  }
+  
+  document.getElementById("service-container").style.display = "none";
+  resetSelection();
+}
+
+function resetSelection(){
+  const barberSelect = document.getElementById("barber-select").value;
+  const serviceContainer = document.getElementById("service-container");
+  
+  if(barberSelect){
+    serviceContainer.style.display = "block";
+    populateDateSelect();
+  } else {
+    serviceContainer.style.display = "none";
+  }
+  document.getElementById("slots-container").style.display = "none";
+  document.getElementById("booking-form").style.display = "none";
+}
+
+// Genera fechas de Martes (2) a Sábado (6)
+function generateAvailableDates() {
+  const dates = [];
+  const today = new Date();
+  const maxDate = new Date();
+  maxDate.setDate(today.getDate() + 30); // Próximos 30 días
+
+  let cursor = new Date(today);
+  while (cursor <= maxDate) {
+    const dayOfWeek = cursor.getDay();
+    if (dayOfWeek >= 2 && dayOfWeek <= 6) {
+      const year = cursor.getFullYear();
+      const month = String(cursor.getMonth() + 1).padStart(2, '0');
+      const day = String(cursor.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      const dayNames = ["", "", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const formattedLabel = `${dayNames[dayOfWeek]} ${day}/${month}/${year}`;
+      
+      dates.push({ dateStr, label: formattedLabel });
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+}
+
+function populateDateSelect() {
+  const select = document.getElementById("date-select");
+  select.innerHTML = '<option value="">-- Seleccionar Fecha --</option>';
+  availableDates = generateAvailableDates();
+  availableDates.forEach(d => {
+    const opt = document.createElement("option");
+    opt.value = d.dateStr;
+    opt.textContent = d.label;
+    select.appendChild(opt);
+  });
+}
+
+function onDateChange() {
+  renderSlots();
+}
+
+function renderSlots() {
+  const branch = document.getElementById("branch-select").value;
+  const barber = document.getElementById("barber-select").value;
+  const dateStr = document.getElementById("date-select").value;
+  const container = document.getElementById("slots-container");
+  const grid = document.getElementById("times-grid");
+
+  if(!branch || !barber || !dateStr) {
+    container.style.display = "none";
+    document.getElementById("booking-form").style.display = "none";
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  workTimes.forEach(time => {
+    // El turno estará ocupado únicamente si coincide: Sucursal + Barbero + Fecha + Hora
+    const isBusy = currentBookings.some(b => 
+      b.branch === branch && b.barber === barber && b.dateStr === dateStr && b.time === time
+    );
+
+    const btn = document.createElement("button");
+    btn.className = "time" + (isBusy ? " busy" : "");
+    btn.textContent = isBusy ? "Ocupado" : time;
+    btn.disabled = isBusy;
+    if(!isBusy) {
+      btn.onclick = () => selectSlot(time, btn);
+    }
+    grid.appendChild(btn);
+  });
+
+  container.style.display = "block";
+}
+
+function selectSlot(time, element) {
+  selectedSlot = time;
+  document.querySelectorAll(".time").forEach(el => el.style.borderColor = "var(--line)");
+  element.style.borderColor = "var(--accent)";
+  document.getElementById("booking-form").style.display = "block";
+  document.getElementById("patient").focus();
+}
+
+function confirmBooking() {
+  const branch = document.getElementById("branch-select").value;
+  const branchName = document.getElementById("branch-select").options[document.getElementById("branch-select").selectedIndex].text;
+  const barber = document.getElementById("barber-select").value;
+  const service = document.getElementById("service-select").value;
+  const dateStr = document.getElementById("date-select").value;
+  const dateLabel = document.getElementById("date-select").options[document.getElementById("date-select").selectedIndex].text;
+  const patient = document.getElementById("patient").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  if(!selectedSlot || !patient || !phone) {
+    alert("Por favor completá tu nombre, WhatsApp y seleccioná un horario.");
+    return;
+  }
+
+  const newBooking = {
+    branch,
+    branchName,
+    barber,
+    service,
+    dateStr,
+    dateLabel,
+    time: selectedSlot,
+    patient,
+    phone
+  };
+
+  // Guardar en la base de datos de Firebase
+  db.ref("turnos_barberia").push().set(newBooking, (err) => {
+    if(err) {
+      alert("Ocurrió un error al guardar la reserva.");
+    } else {
+      // Redirección directa al WhatsApp con los detalles
+      const text = encodeURIComponent(
+        `💈 *NUEVA RESERVA - BARBERÍA*\n\n` +
+        `👤 *Cliente:* ${patient}\n` +
+        `📍 *Sucursal:* ${branchName}\n` +
+        `✂️ *Barbero:* ${barber}\n` +
+        `🛠️ *Servicio:* ${service}\n` +
+        `📅 *Fecha:* ${dateLabel}\n` +
+        `⏰ *Hora:* ${selectedSlot} hs\n` +
+        `📱 *Contacto:* ${phone}`
+      );
+      window.location.href = `https://wa.me/${BARBER_PHONE}?text=${text}`;
+    }
+  });
+}
+</script>
+</body>
+</html>
