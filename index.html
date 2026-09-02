@@ -470,6 +470,124 @@ header{
   .service-price{font-size:13px}
   .btn-add{width:36px;height:36px}
 }
+
+/* ==================== RECEPCIÓN / ADMIN ==================== */
+.admin-page{
+  max-width:1180px;margin:0 auto;padding:28px 18px 60px;
+}
+.admin-topbar{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:18px;
+  margin-bottom:24px;
+}
+.admin-kicker{
+  color:var(--accent);font-size:10px;font-weight:850;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:7px;
+}
+.admin-title{font-size:28px;letter-spacing:-.8px;font-weight:800}
+.admin-subtitle{color:var(--muted);font-size:12px;margin-top:6px}
+.admin-actions{display:flex;gap:8px;align-items:center}
+.admin-login{
+  width:min(430px,100%);margin:70px auto;padding:26px;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);
+}
+.admin-login .lock-icon{
+  width:48px;height:48px;border-radius:14px;background:var(--accent-soft);
+  border:1px solid var(--accent-border);display:flex;align-items:center;
+  justify-content:center;color:var(--accent);font-size:20px;margin-bottom:18px;
+}
+.admin-login h2{font-size:21px;font-weight:800;letter-spacing:-.4px}
+.admin-login p{color:var(--muted);font-size:12px;line-height:1.55;margin:7px 0 20px}
+.admin-login .login-error{
+  display:none;color:var(--danger);font-size:11px;margin:-6px 0 14px;
+}
+.admin-dashboard{display:none}
+.admin-filters{
+  display:grid;grid-template-columns:1.1fr 1.1fr .8fr;gap:10px;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:16px;
+}
+.admin-filter label{
+  display:block;color:var(--muted-2);font-size:9px;font-weight:850;
+  text-transform:uppercase;letter-spacing:1px;margin:0 0 7px;
+}
+.admin-filter select,.admin-filter input{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);border-radius:10px;padding:11px 12px;outline:none;font-size:12px;
+}
+.admin-filter select:focus,.admin-filter input:focus{
+  border-color:var(--accent-border);box-shadow:0 0 0 3px var(--accent-soft);
+}
+.admin-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;
+}
+.admin-stat{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;
+}
+.admin-stat .label{color:var(--muted);font-size:10px}
+.admin-stat .value{font-size:21px;font-weight:850;margin-top:5px}
+.admin-stat.accent .value{color:var(--accent)}
+.admin-table-wrap{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;box-shadow:0 16px 45px rgba(0,0,0,.2);
+}
+.admin-table-head{
+  padding:16px 17px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+.admin-table-head h3{font-size:14px;font-weight:800}
+.admin-table-head span{font-size:10px;color:var(--muted)}
+.admin-table-scroll{overflow-x:auto}
+.admin-table{
+  width:100%;border-collapse:collapse;min-width:850px;
+}
+.admin-table th{
+  text-align:left;background:#151619;color:var(--muted-2);font-size:9px;
+  letter-spacing:.9px;text-transform:uppercase;padding:11px 14px;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.admin-table td{
+  padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.045);
+  font-size:11px;vertical-align:middle;
+}
+.admin-table tbody tr{transition:background .15s}
+.admin-table tbody tr:hover{background:rgba(255,255,255,.025)}
+.admin-table tbody tr:last-child td{border-bottom:0}
+.admin-client{font-weight:760}
+.admin-client small{display:block;color:var(--muted);font-weight:500;margin-top:3px}
+.admin-pro{font-weight:700}
+.admin-pro small{display:block;color:var(--muted);font-weight:500;margin-top:3px}
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 8px;
+  border-radius:7px;font-size:9px;font-weight:800;white-space:nowrap;
+}
+.status-badge.available{background:rgba(105,211,155,.08);color:var(--success);border:1px solid rgba(105,211,155,.18)}
+.status-badge.reserved{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-border)}
+.status-badge.cancelled{background:rgba(228,125,125,.08);color:var(--danger);border:1px solid rgba(228,125,125,.18)}
+.admin-cancel{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:8px;padding:7px 9px;font-size:10px;font-weight:750;cursor:pointer;
+  transition:.18s;
+}
+.admin-cancel:hover{border-color:rgba(228,125,125,.4);color:var(--danger);background:rgba(228,125,125,.06)}
+.admin-empty{text-align:center;padding:42px 18px;color:var(--muted);font-size:12px}
+.admin-date-group{
+  background:#151619;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:8px 14px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.5px;
+}
+.admin-note{
+  margin-top:10px;color:var(--muted-2);font-size:10px;line-height:1.5;
+}
+@media(max-width:800px){
+  .admin-filters{grid-template-columns:1fr}
+  .admin-stats{grid-template-columns:repeat(2,1fr)}
+  .admin-topbar{flex-direction:column}
+}
+@media(max-width:520px){
+  .admin-page{padding:20px 13px 40px}
+  .admin-title{font-size:23px}
+}
+
 </style>
 </head>
 <body>
@@ -486,6 +604,77 @@ header{
     </div>
   </div>
 </header>
+
+
+<!-- RECEPCIÓN / PANEL PRIVADO -->
+<div id="reception-page" class="view">
+  <div id="reception-login" class="admin-login">
+    <div class="lock-icon">▣</div>
+    <div class="admin-kicker">Acceso privado</div>
+    <h2>Panel de recepción</h2>
+    <p>Ingresá con la contraseña del local para consultar la agenda, clientes y disponibilidad.</p>
+
+    <div class="form-group">
+      <label for="reception-password">Contraseña</label>
+      <input id="reception-password" type="password" autocomplete="current-password"
+             placeholder="Ingresá la contraseña">
+    </div>
+    <div id="reception-login-error" class="login-error">Contraseña incorrecta.</div>
+    <button class="btn-continue" onclick="receptionLogin()">Ingresar <span style="margin-left:7px">→</span></button>
+    <div class="admin-note">La contraseña definitiva puede configurarse cuando el servicio sea activado para el local.</div>
+  </div>
+
+  <div id="reception-dashboard" class="admin-dashboard admin-page">
+    <div class="admin-topbar">
+      <div>
+        <div class="admin-kicker">Gestión del local</div>
+        <h1 class="admin-title">Agenda de turnos</h1>
+        <p class="admin-subtitle">Vista general de reservas y espacios disponibles.</p>
+      </div>
+      <div class="admin-actions">
+        <button class="btn-outline" onclick="goToStep(1)">← Volver a la web</button>
+        <button class="btn-outline" onclick="receptionLogout()">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <div class="admin-filters">
+      <div class="admin-filter">
+        <label for="admin-branch">Sucursal</label>
+        <select id="admin-branch" onchange="renderReceptionAgenda()">
+          <option value="sucursal1">Sucursal Centro</option>
+          <option value="sucursal2">Sucursal Norte</option>
+        </select>
+      </div>
+      <div class="admin-filter">
+        <label for="admin-pro">Profesional</label>
+        <select id="admin-pro" onchange="renderReceptionAgenda()">
+          <option value="ALL">Todos los profesionales</option>
+        </select>
+      </div>
+      <div class="admin-filter">
+        <label for="admin-date">Fecha</label>
+        <input id="admin-date" type="date" onchange="renderReceptionAgenda()">
+      </div>
+    </div>
+
+    <div class="admin-stats">
+      <div class="admin-stat accent"><div class="label">Turnos reservados</div><div id="admin-stat-reserved" class="value">0</div></div>
+      <div class="admin-stat"><div class="label">Espacios libres</div><div id="admin-stat-free" class="value">0</div></div>
+      <div class="admin-stat"><div class="label">Profesionales</div><div id="admin-stat-pros" class="value">0</div></div>
+      <div class="admin-stat"><div class="label">Agenda total</div><div id="admin-stat-total" class="value">0</div></div>
+    </div>
+
+    <div class="admin-table-wrap">
+      <div class="admin-table-head">
+        <div>
+          <h3 id="admin-agenda-title">Agenda</h3>
+          <span>Los espacios libres también aparecen para facilitar la gestión.</span>
+        </div>
+      </div>
+      <div id="admin-agenda-container"></div>
+    </div>
+  </div>
+</div>
 
 <!-- STEP 1: LANDING PAGE VIEW -->
 <div id="step-1" class="view active">
@@ -801,7 +990,7 @@ db.ref("turnos_demo").on("value", (snapshot) => {
   const data = snapshot.val();
   existingBookings = [];
   if(data) {
-    Object.keys(data).forEach(k => existingBookings.push(data[k]));
+    Object.keys(data).forEach(k => existingBookings.push({...data[k], firebaseKey:k}));
   }
   if(currentStep === 4) renderTimeSlots();
 });
@@ -825,7 +1014,19 @@ function goToStep(stepNum) {
   currentStep = stepNum;
 
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  
+
+  if(stepNum === 'reception') {
+    document.getElementById('reception-page').classList.add('active');
+    document.getElementById('wizard-bar').style.display = 'none';
+    document.getElementById('wizard-container').style.display = 'none';
+    if(receptionAuthenticated) {
+      showReceptionDashboard();
+    } else {
+      showReceptionLogin();
+    }
+    return;
+  }
+
   if(stepNum === 1) {
     document.getElementById('step-1').classList.add('active');
     document.getElementById('wizard-bar').style.display = 'none';
@@ -1081,6 +1282,236 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+
+// ==================== RECEPCIÓN / PANEL PRIVADO ====================
+// Demo temporal: esta contraseña NO debe considerarse seguridad real.
+// Cuando se active el servicio, conviene mover la autenticación a Firebase Auth
+// y guardar los permisos del recepcionista en el backend.
+const RECEPTION_PASSWORD = "admin123";
+let receptionAuthenticated = false;
+
+function openReception() {
+  goToStep('reception');
+}
+
+function showReceptionLogin() {
+  document.getElementById('reception-login').style.display = 'block';
+  document.getElementById('reception-dashboard').style.display = 'none';
+  const input = document.getElementById('reception-password');
+  const error = document.getElementById('reception-login-error');
+  if(input) input.value = "";
+  if(error) error.style.display = 'none';
+  setTimeout(() => input && input.focus(), 50);
+}
+
+function showReceptionDashboard() {
+  document.getElementById('reception-login').style.display = 'none';
+  document.getElementById('reception-dashboard').style.display = 'block';
+  populateAdminProfessionals();
+  const dateInput = document.getElementById('admin-date');
+  if(dateInput && !dateInput.value) dateInput.value = todayDateString();
+  renderReceptionAgenda();
+}
+
+function receptionLogin() {
+  const password = document.getElementById('reception-password').value;
+  const error = document.getElementById('reception-login-error');
+
+  if(password === RECEPTION_PASSWORD) {
+    receptionAuthenticated = true;
+    showReceptionDashboard();
+  } else {
+    error.style.display = 'block';
+    document.getElementById('reception-password').focus();
+  }
+}
+
+function receptionLogout() {
+  receptionAuthenticated = false;
+  goToStep(1);
+}
+
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && document.activeElement?.id === 'reception-password') {
+    receptionLogin();
+  }
+});
+
+function todayDateString() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function populateAdminProfessionals() {
+  const branch = document.getElementById('admin-branch').value;
+  const select = document.getElementById('admin-pro');
+  const current = select.value;
+  select.innerHTML = '<option value="ALL">Todos los profesionales</option>';
+
+  barbersByBranch[branch].forEach(pro => {
+    if(pro.name === "Sin preferencia de profesional") return;
+    const option = document.createElement('option');
+    option.value = pro.name;
+    option.textContent = pro.name;
+    select.appendChild(option);
+  });
+
+  if([...select.options].some(o => o.value === current)) select.value = current;
+}
+
+document.getElementById('admin-branch')?.addEventListener('change', () => {
+  document.getElementById('admin-pro').value = 'ALL';
+  populateAdminProfessionals();
+  renderReceptionAgenda();
+});
+
+function formatAdminDate(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const date = new Date(y,m-1,d);
+  return date.toLocaleDateString('es-AR', {
+    weekday:'long', day:'2-digit', month:'long', year:'numeric'
+  }).replace(/^./, c => c.toUpperCase());
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[c]));
+}
+
+function getAdminBookings(branch, dateStr, proFilter) {
+  return existingBookings.filter(b =>
+    b.branch === branch &&
+    b.dateStr === dateStr &&
+    (!proFilter || proFilter === 'ALL' || b.barber === proFilter) &&
+    b.status !== 'cancelled'
+  );
+}
+
+function renderReceptionAgenda() {
+  if(!receptionAuthenticated) return;
+
+  const branch = document.getElementById('admin-branch').value;
+  const proFilter = document.getElementById('admin-pro').value;
+  const dateStr = document.getElementById('admin-date').value || todayDateString();
+  const pros = barbersByBranch[branch].filter(p => p.name !== "Sin preferencia de profesional");
+  const visiblePros = proFilter === 'ALL' ? pros : pros.filter(p => p.name === proFilter);
+  const bookings = getAdminBookings(branch, dateStr, proFilter);
+
+  let total = 0;
+  let reserved = 0;
+  let free = 0;
+
+  const rows = [];
+  visiblePros.forEach(pro => {
+    workTimes.forEach(time => {
+      total++;
+      const booking = bookings.find(b => b.barber === pro.name && b.time === time);
+      if(booking) {
+        reserved++;
+        rows.push({
+          time, pro:pro.name, booking, reserved:true
+        });
+      } else {
+        free++;
+        rows.push({
+          time, pro:pro.name, booking:null, reserved:false
+        });
+      }
+    });
+  });
+
+  document.getElementById('admin-stat-reserved').textContent = reserved;
+  document.getElementById('admin-stat-free').textContent = free;
+  document.getElementById('admin-stat-pros').textContent = visiblePros.length;
+  document.getElementById('admin-stat-total').textContent = total;
+  document.getElementById('admin-agenda-title').textContent =
+    `${branch === 'sucursal1' ? 'Sucursal Centro' : 'Sucursal Norte'} · ${formatAdminDate(dateStr)}`;
+
+  const container = document.getElementById('admin-agenda-container');
+
+  if(!visiblePros.length) {
+    container.innerHTML = '<div class="admin-empty">No hay profesionales para este filtro.</div>';
+    return;
+  }
+
+  let table = `
+    <div class="admin-table-scroll">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Profesional</th>
+            <th>Estado</th>
+            <th>Cliente</th>
+            <th>Celular</th>
+            <th>Servicio</th>
+            <th>Total</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  rows.forEach(row => {
+    if(row.reserved) {
+      const b = row.booking;
+      table += `
+        <tr>
+          <td><strong>${escapeHtml(row.time)} hs</strong></td>
+          <td><div class="admin-pro">${escapeHtml(row.pro)}</div></td>
+          <td><span class="status-badge reserved">● Reservado</span></td>
+          <td><div class="admin-client">${escapeHtml(b.patient || 'Sin nombre')}</div></td>
+          <td>${escapeHtml(b.phone || '—')}</td>
+          <td>${escapeHtml(b.service || '—')}</td>
+          <td><strong>$ ${Number(b.totalPrice || 0).toLocaleString('es-AR')}</strong></td>
+          <td><button class="admin-cancel" onclick="cancelReceptionBooking('${escapeHtml(b.firebaseKey || '')}')">Cancelar</button></td>
+        </tr>
+      `;
+    } else {
+      table += `
+        <tr>
+          <td><strong>${escapeHtml(row.time)} hs</strong></td>
+          <td><div class="admin-pro">${escapeHtml(row.pro)}</div></td>
+          <td><span class="status-badge available">● Disponible</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span style="color:var(--muted-2);font-size:10px">Libre</span></td>
+        </tr>
+      `;
+    }
+  });
+
+  table += '</tbody></table></div>';
+  container.innerHTML = table;
+}
+
+function cancelReceptionBooking(key) {
+  if(!receptionAuthenticated || !key) return;
+
+  const booking = existingBookings.find(b => b.firebaseKey === key);
+  if(!booking) {
+    alert("No se encontró el turno. Actualizá la agenda e intentá nuevamente.");
+    return;
+  }
+
+  const client = booking.patient || "este cliente";
+  if(!confirm(`¿Cancelar el turno de ${client} a las ${booking.time} hs?`)) return;
+
+  db.ref(`turnos_demo/${key}`).remove((err) => {
+    if(err) {
+      alert("No se pudo cancelar el turno. Verificá la conexión.");
+      return;
+    }
+    renderReceptionAgenda();
+  });
+}
+
 // FINALIZAR RESERVA
 function submitFinalBooking() {
   const name = document.getElementById('client-name').value.trim();
@@ -1105,7 +1536,8 @@ function submitFinalBooking() {
     dateLabel: selectedDateLabel,
     time: selectedTimeSlot,
     patient: name,
-    phone: phone
+    phone: phone,
+    status: 'reserved'
   };
 
   db.ref("turnos_demo").push().set(bookingData, (err) => {
