@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Turnos Pro | Administración</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#0b0b0c;--s:#111214;--s2:#181a1e;--b:#292d33;--t:#f7f7f5;--m:#9699a1;--a:#d7b35a;--g:#69d39b;--r:#e47d7d}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--t);min-height:100vh}button,input{font:inherit}button{cursor:pointer}
+header{padding:15px 20px;border-bottom:1px solid #202228;background:#0d0e10}.nav{max-width:1220px;margin:auto;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900;letter-spacing:2px}.brand span{color:var(--a)}.wrap{max-width:1220px;margin:auto;padding:34px 18px 70px}
+.btn{border:1px solid var(--b);background:var(--s2);color:var(--t);padding:10px 13px;border-radius:10px;font-size:12px;font-weight:800}.primary{background:#fff;color:#000}.danger{color:var(--r)}.green{color:var(--g)}
+.card{background:linear-gradient(180deg,var(--s2),var(--s));border:1px solid var(--b);border-radius:18px;padding:20px}.k{font-size:10px;color:var(--a);font-weight:900;letter-spacing:2px;text-transform:uppercase}.title{font-size:28px;font-weight:850;margin-top:5px}.muted{font-size:12px;color:var(--m);line-height:1.55;margin-top:6px}
+.field{margin-top:12px}.field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--m);font-weight:900;margin-bottom:7px}.field input{width:100%;padding:12px;background:#0f1012;border:1px solid var(--b);color:#fff;border-radius:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.stat{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:14px}.stat small{color:var(--m);font-size:10px}.stat strong{display:block;font-size:24px;margin-top:4px}.table-wrap{overflow:auto;border:1px solid var(--b);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:900px}th{background:#151619;color:var(--m);font-size:9px;text-transform:uppercase;letter-spacing:1px;text-align:left;padding:11px}td{padding:12px 11px;border-top:1px solid rgba(255,255,255,.05);font-size:11px}.badge{display:inline-flex;padding:5px 8px;border-radius:7px;font-size:9px;font-weight:900}.active{color:var(--g);background:rgba(105,211,155,.08)}.blocked{color:var(--r);background:rgba(228,125,125,.08)}.actions{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body><header><div class="nav"><div class="brand">TURNOS <span>PRO ADMIN</span></div><button id="logout" class="btn" style="display:none" onclick="auth.signOut()">Cerrar sesión</button></div></header><main id="app"></main>
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyBX7l9fm8jvUUys2osiYquN0B5JZLgd2DI",
+  authDomain:"barberia-demo-22bb4.firebaseapp.com",
+  databaseURL:"https://barberia-demo-22bb4-default-rtdb.firebaseio.com",
+  projectId:"barberia-demo-22bb4",
+  storageBucket:"barberia-demo-22bb4.firebasestorage.app",
+  messagingSenderId:"360287665229",
+  appId:"1:360287665229:web:b0c48af17c5dbec7fdb004"
+};
+firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function loginUI(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="card" style="max-width:480px;margin:55px auto"><div class="k">Administración de plataforma</div><div class="title">Iniciar sesión</div><p class="muted">Este acceso es solamente para el administrador de Turnos Pro.</p><div id="msg"></div><div class="field"><label>Email</label><input id="email" type="email"></div><div class="field"><label>Contraseña</label><input id="pass" type="password"></div><button class="btn primary" style="width:100%;margin-top:14px" onclick="login()">Ingresar como administrador</button></div></section>`}
+async function login(){try{await auth.signInWithEmailAndPassword(document.getElementById("email").value.trim(),document.getElementById("pass").value)}catch(e){document.getElementById("msg").innerHTML='<p style="color:var(--r);font-size:11px;margin-top:10px">Correo o contraseña incorrectos.</p>'}}
+async function isAdmin(uid){const s=await db.ref(`admins/${uid}`).once("value");return s.val()===true}
+async function dashboard(){
+ const u=auth.currentUser;if(!u)return loginUI();
+ if(!(await isAdmin(u.uid))){document.getElementById("app").innerHTML=`<section class="wrap"><div class="card" style="max-width:620px;margin:55px auto"><div class="k">Acceso denegado</div><div class="title">Esta cuenta no es administradora.</div><p class="muted">Para habilitarla, agregá en Firebase Realtime Database: <b>admins/${esc(u.uid)} = true</b>.</p><button class="btn" style="margin-top:14px" onclick="auth.signOut()">Cerrar sesión</button></div></section>`;return}
+ document.getElementById("logout").style.display="inline-flex";
+ const n=(await db.ref("negocios").once("value")).val()||{},blocked=(await db.ref("blockedBusinesses").once("value")).val()||{};
+ let bookingCount=0;Object.values(n).forEach(x=>bookingCount+=Object.values(x.turnos||{}).filter(t=>t.status!=="cancelled").length);
+ document.getElementById("app").innerHTML=`<section class="wrap"><div class="k">Panel maestro</div><div class="title">Administración de Turnos Pro</div><p class="muted">Control general de barberías registradas.</p><div class="stats"><div class="stat"><small>Barberías activas</small><strong>${Object.keys(n).length}</strong></div><div class="stat"><small>Bloqueadas</small><strong>${Object.keys(blocked).length}</strong></div><div class="stat"><small>Turnos activos</small><strong>${bookingCount}</strong></div><div class="stat"><small>Administrador</small><strong style="font-size:13px">${esc(u.email||"")}</strong></div></div><div class="card"><div class="title" style="font-size:20px;margin-bottom:12px">Barberías</div><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Email</th><th>WhatsApp</th><th>Sucursales</th><th>Profesionales</th><th>Servicios</th><th>Turnos</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${Object.entries(n).map(([uid,b])=>row(uid,b,blocked[uid]===true)).join("")||'<tr><td colspan="9" style="text-align:center;padding:30px">No hay negocios registrados.</td></tr>'}</tbody></table></div></div></section>`;
+}
+function row(uid,b,isBlocked){const turns=Object.values(b.turnos||{}).filter(t=>t.status!=="cancelled").length;return `<tr><td><b>${esc(b.name||"Sin nombre")}</b><br><span style="color:var(--m)">${esc(b.slug||"")}</span></td><td>${esc(b.email||"")}</td><td>${esc(b.phone||"")}</td><td>${Object.keys(b.branches||{}).length}</td><td>${Object.keys(b.professionals||{}).length}</td><td>${Object.keys(b.services||{}).length}</td><td>${turns}</td><td><span class="badge ${isBlocked?"blocked":"active"}">${isBlocked?"Bloqueada":"Activa"}</span></td><td><div class="actions"><button class="btn" onclick="window.open('index.html?negocio=${encodeURIComponent(b.slug||"")}','_blank')">Ver</button>${isBlocked?`<button class="btn green" onclick="restoreBusiness('${uid}')">Reactivar</button>`:`<button class="btn danger" onclick="suspendBusiness('${uid}','${encodeURIComponent(b.slug||"")}')">Bloquear</button>`}<button class="btn danger" onclick="deleteBusiness('${uid}','${encodeURIComponent(b.slug||"")}')">Eliminar</button></div></td></tr>`}
+async function suspendBusiness(uid,slug){if(!confirm("¿Bloquear esta barbería? Dejará de poder usar el sistema."))return;await db.ref(`blockedBusinesses/${uid}`).set(true);await db.ref(`publicProfiles/${decodeURIComponent(slug)}`).remove();await dashboard()}
+async function restoreBusiness(uid){if(!confirm("¿Reactivar esta barbería?"))return;await db.ref(`blockedBusinesses/${uid}`).remove();const s=await db.ref(`negocios/${uid}`).once("value");const b=s.val();if(b&&b.slug){const pub={ownerUid:uid,name:b.name||"",phone:b.phone||"",description:b.description||"",branches:b.branches||{},professionals:b.professionals||{},services:b.services||{},workTimes:b.workTimes||[],weeklyHours:b.weeklyHours||{},closedDates:b.closedDates||{},professionalAbsences:b.professionalAbsences||{}};await db.ref(`publicProfiles/${b.slug}`).set(pub)}await dashboard()}
+async function deleteBusiness(uid,slug){if(!confirm("Esto elimina los datos del negocio de la plataforma. La cuenta de Firebase Authentication no se puede borrar desde esta página. ¿Continuar?"))return;await db.ref(`blockedBusinesses/${uid}`).set(true);await db.ref(`publicProfiles/${decodeURIComponent(slug)}`).remove();await db.ref(`negocios/${uid}`).remove();await dashboard()}
+auth.onAuthStateChanged(u=>u?dashboard():loginUI());
+</script></body></html>
