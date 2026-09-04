@@ -15,7 +15,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,10,11,.9);backdrop-fi
 
 .auth{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:920px;margin:55px auto}.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:14px}.tab.active{background:#fff;color:#000}.panel{display:none}.panel.active{display:block}.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}.schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.day{border:1px solid var(--b);border-radius:12px;padding:10px;background:#101113}.day input{width:100%;margin-top:7px;padding:8px;background:#0e0f11;color:#fff;border:1px solid var(--b);border-radius:8px}.day label{display:flex;gap:5px;align-items:center;color:var(--m);font-size:10px;margin-top:7px}.copy{display:flex;gap:8px}.copy input{flex:1}@media(max-width:900px){.controls{grid-template-columns:1fr}.schedule{grid-template-columns:repeat(2,1fr)}}@media(max-width:800px){.auth{grid-template-columns:1fr}.head{flex-direction:column}}
 </style></head>
-<body><header><div class="nav"><div class="brand">TURNOS <span>PRO</span></div><a class="btn" href="index.html">Página pública</a></div></header><main id="app"></main>
+<body><header><div class="nav" style="justify-content:center"><div class="brand">TURNOS <span>PRO</span></div></div></header><main id="app"></main>
 <script>
 const firebaseConfig={
   apiKey:"AIzaSyBX7l9fm8jvUUys2osiYquN0B5JZLgd2DI",
@@ -29,14 +29,240 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();let B=null,BOOK={};
 const defs=["10:00","10:40","11:20","12:00","12:40","13:20","14:00","14:40","15:20","16:00","16:40","17:20","18:00","18:40","19:20"],days=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])),slugify=v=>v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-function loginUI(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="auth"><div class="card"><div class="k">Nueva peluquería</div><div class="title">Crear cuenta</div><p class="muted">Creá tu cuenta y entrás directamente al panel.</p><div id="rm"></div><div class="field"><label>Nombre</label><input id="rn"></div><div class="field"><label>WhatsApp</label><input id="rp"></div><div class="field"><label>Email</label><input id="re" type="email"></div><div class="field"><label>Contraseña</label><input id="rw" type="password" placeholder="Mínimo 6 caracteres"></div><button class="btn primary" style="width:100%;margin-top:14px" onclick="reg()">Crear cuenta</button></div><div class="card"><div class="k">Acceso privado</div><div class="title">Iniciar sesión</div><p class="muted">Entrá con el email y contraseña del negocio.</p><div id="lm"></div><div class="field"><label>Email</label><input id="le" type="email"></div><div class="field"><label>Contraseña</label><input id="lw" type="password"></div><button class="btn gold" style="width:100%;margin-top:14px" onclick="log()">Ingresar</button></div></div></section>`}
-async function reg(){const n=document.getElementById("rn").value.trim(),p=document.getElementById("rp").value.trim(),e=document.getElementById("re").value.trim(),w=document.getElementById("rw").value,rm=document.getElementById("rm");if(!n||!e||!w){rm.innerHTML='<p style="color:var(--r);margin-top:10px">Completá nombre, email y contraseña.</p>';return}try{const c=await auth.createUserWithEmailAndPassword(e,w),uid=c.user.uid,slug=(slugify(n)||"peluqueria")+"-"+uid.slice(0,6).toLowerCase();let weekly={};for(let d=0;d<7;d++)weekly[d]={closed:d===0,start:"10:00",end:"19:20"};const obj={name:n,phone:p,email:e,slug,description:"",createdAt:Date.now(),branches:{principal:{name:"Sucursal principal",address:"",active:true}},professionals:{},services:{},workTimes:defs,weeklyHours:weekly,closedDates:{},professionalAbsences:{}};await db.ref(`negocios/${uid}`).set(obj);await syncPublic(uid,obj);await dashboard()}catch(err){rm.innerHTML='<p style="color:var(--r);margin-top:10px">'+esc(err.message)+'</p>'}}
-async function log(){const lm=document.getElementById("lm");try{await auth.signInWithEmailAndPassword(document.getElementById("le").value.trim(),document.getElementById("lw").value);await dashboard()}catch(err){lm.innerHTML='<p style="color:var(--r);margin-top:10px">No se pudo iniciar sesión: '+esc(err.message)+'</p>'}}
+function loginUI(){
+  document.getElementById("app").innerHTML=`
+  <section class="wrap">
+    <div style="max-width:620px;margin:55px auto">
+      <div style="text-align:center;margin-bottom:22px">
+        <div class="k">Portal para peluquerías</div>
+        <div class="title" style="font-size:34px">Administrá tu negocio</div>
+        <p class="muted">Registrate o iniciá sesión para gestionar turnos, profesionales, horarios y estadísticas.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <button id="auth-tab-register" class="btn primary" onclick="showAuthMode('register')">Registrar peluquería</button>
+        <button id="auth-tab-login" class="btn" onclick="showAuthMode('login')">Iniciar sesión</button>
+      </div>
+
+      <div class="card">
+        <div id="auth-register">
+          <div class="k">Nueva peluquería</div>
+          <div class="title" style="font-size:24px">Crear cuenta</div>
+          <p class="muted">Creá tu cuenta. Cuando termine el registro vas a entrar automáticamente al panel.</p>
+          <div id="rm"></div>
+          <div class="field"><label>Nombre de la peluquería</label><input id="rn" autocomplete="organization"></div>
+          <div class="field"><label>WhatsApp</label><input id="rp" inputmode="tel"></div>
+          <div class="field"><label>Email</label><input id="re" type="email" autocomplete="email"></div>
+          <div class="field"><label>Contraseña</label><input id="rw" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
+          <button id="register-btn" class="btn primary" style="width:100%;margin-top:14px" onclick="reg()">Registrar peluquería</button>
+        </div>
+
+        <div id="auth-login" style="display:none">
+          <div class="k">Acceso privado</div>
+          <div class="title" style="font-size:24px">Iniciar sesión</div>
+          <p class="muted">Ingresá con el correo y la contraseña de tu peluquería.</p>
+          <div id="lm"></div>
+          <div class="field"><label>Email</label><input id="le" type="email" autocomplete="email"></div>
+          <div class="field"><label>Contraseña</label><input id="lw" type="password" autocomplete="current-password"></div>
+          <button id="login-btn" class="btn gold" style="width:100%;margin-top:14px" onclick="log()">Ingresar</button>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function showAuthMode(mode){
+  const regBox=document.getElementById("auth-register");
+  const loginBox=document.getElementById("auth-login");
+  const regTab=document.getElementById("auth-tab-register");
+  const loginTab=document.getElementById("auth-tab-login");
+  if(mode==="login"){
+    regBox.style.display="none";
+    loginBox.style.display="block";
+    regTab.classList.remove("primary");
+    loginTab.classList.add("primary");
+    setTimeout(()=>document.getElementById("le")?.focus(),50);
+  }else{
+    loginBox.style.display="none";
+    regBox.style.display="block";
+    loginTab.classList.remove("primary");
+    regTab.classList.add("primary");
+    setTimeout(()=>document.getElementById("rn")?.focus(),50);
+  }
+}
+
+async function reg(){
+  const n=document.getElementById("rn").value.trim();
+  const p=document.getElementById("rp").value.trim();
+  const e=document.getElementById("re").value.trim();
+  const w=document.getElementById("rw").value;
+  const rm=document.getElementById("rm");
+  const btn=document.getElementById("register-btn");
+
+  if(!n||!e||!w){
+    rm.innerHTML='<p style="color:var(--r);margin-top:10px">Completá nombre, email y contraseña.</p>';
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent="Creando cuenta...";
+
+  try{
+    const c=await auth.createUserWithEmailAndPassword(e,w);
+    const uid=c.user.uid;
+    const slug=(slugify(n)||"peluqueria")+"-"+uid.slice(0,6).toLowerCase();
+
+    let weekly={};
+    for(let d=0;d<7;d++) weekly[d]={closed:d===0,start:"10:00",end:"19:20"};
+
+    const obj={
+      name:n,phone:p,email:e,slug,description:"",
+      createdAt:Date.now(),
+      branches:{principal:{name:"Sucursal principal",address:"",active:true}},
+      professionals:{},services:{},workTimes:defs,
+      weeklyHours:weekly,closedDates:{},professionalAbsences:{}
+    };
+
+    await db.ref(`negocios/${uid}`).set(obj);
+
+    // El perfil público mejora la página del cliente, pero NO debe impedir
+    // entrar al panel si las Rules todavía no fueron actualizadas.
+    try{ await syncPublic(uid,obj); }catch(publicErr){ console.warn("public profile:",publicErr); }
+
+    await dashboard();
+  }catch(err){
+    let text="No se pudo crear la cuenta.";
+    if(err.code==="auth/email-already-in-use") text="Ese correo ya está registrado. Probá con “Iniciar sesión”.";
+    else if(err.code==="auth/weak-password") text="La contraseña debe tener al menos 6 caracteres.";
+    else if(err.code==="auth/invalid-email") text="El correo ingresado no es válido.";
+    else text+=" "+err.message;
+    rm.innerHTML='<p style="color:var(--r);margin-top:10px">'+esc(text)+'</p>';
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Registrar peluquería";
+  }
+}
+
+async function log(){
+  const lm=document.getElementById("lm");
+  const btn=document.getElementById("login-btn");
+  const email=document.getElementById("le").value.trim();
+  const password=document.getElementById("lw").value;
+
+  lm.innerHTML="";
+
+  if(!email||!password){
+    lm.innerHTML='<p style="color:var(--r);margin-top:10px">Ingresá correo y contraseña.</p>';
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent="Ingresando...";
+
+  try{
+    await auth.signInWithEmailAndPassword(email,password);
+    await dashboard();
+  }catch(err){
+    console.error(err);
+    let text="No se pudo iniciar sesión.";
+    if(["auth/invalid-login-credentials","auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(err.code)){
+      text="Correo o contraseña incorrectos.";
+    }else if(err.code==="auth/too-many-requests"){
+      text="Hubo demasiados intentos. Esperá unos minutos y volvé a probar.";
+    }else if(err.code==="auth/network-request-failed"){
+      text="No se pudo conectar con Firebase. Revisá tu conexión.";
+    }
+    lm.innerHTML='<p style="color:var(--r);margin-top:10px">'+esc(text)+'</p>';
+  }finally{
+    if(document.getElementById("login-btn")){
+      btn.disabled=false;
+      btn.textContent="Ingresar";
+    }
+  }
+}
+
 async function getBusiness(){const u=auth.currentUser;if(!u)return null;const s=await db.ref(`negocios/${u.uid}`).once("value");return s.exists()?{...s.val(),id:u.uid}:null}
 function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{}}}
 async function syncPublic(uid,obj){await db.ref(`publicProfiles/${obj.slug}`).set(publicPayload(uid,obj))}
-async function refreshAndSync(){B=await getBusiness();if(B)await syncPublic(B.id,B)}
-async function dashboard(){B=await getBusiness();if(!B){const u=auth.currentUser;document.getElementById("app").innerHTML=`<section class="wrap"><div class="card"><h2>La cuenta existe, pero falta crear el perfil del negocio.</h2><p class="muted">Esto puede pasar con una cuenta creada por la versión anterior. Cerrá sesión y registrá una cuenta nueva, o eliminá ese usuario de prueba en Firebase Authentication.</p><button class="btn" style="margin-top:14px" onclick="auth.signOut()">Cerrar sesión</button></div></section>`;return}BOOK=(await db.ref(`negocios/${B.id}/turnos`).once("value")).val()||{};await syncPublic(B.id,B);renderDash()}
+async function refreshAndSync(){B=await getBusiness();if(B){try{await syncPublic(B.id,B)}catch(e){console.warn("sync public:",e)}}}
+async function dashboard(){
+  try{
+    B=await getBusiness();
+
+    if(!B){
+      renderProfileRecovery();
+      return;
+    }
+
+    BOOK=(await db.ref(`negocios/${B.id}/turnos`).once("value")).val()||{};
+
+    // Primero mostramos el panel. Una falla del perfil público nunca bloquea el login.
+    renderDash();
+
+    syncPublic(B.id,B).catch(err=>{
+      console.warn("No se pudo sincronizar el perfil público:",err);
+    });
+  }catch(err){
+    console.error("dashboard error",err);
+    document.getElementById("app").innerHTML=`
+      <section class="wrap">
+        <div class="card" style="max-width:650px;margin:50px auto">
+          <div class="k">Error al cargar el panel</div>
+          <div class="title" style="font-size:24px">La sesión inició, pero no pudimos leer los datos.</div>
+          <p class="muted">Esto normalmente significa que las reglas de Realtime Database todavía no coinciden con esta versión.</p>
+          <p style="color:var(--r);font-size:11px;margin-top:12px">${esc(err.message||"")}</p>
+          <button class="btn" style="margin-top:14px" onclick="auth.signOut()">Cerrar sesión</button>
+        </div>
+      </section>`;
+  }
+}
+
+function renderProfileRecovery(){
+  const u=auth.currentUser;
+  document.getElementById("app").innerHTML=`
+    <section class="wrap">
+      <div class="card" style="max-width:620px;margin:50px auto">
+        <div class="k">Completar negocio</div>
+        <div class="title" style="font-size:25px">Tu usuario existe y el inicio de sesión funcionó.</div>
+        <p class="muted">Esta cuenta fue creada con una versión anterior y no tiene perfil de peluquería. Completalo una sola vez y entrás al panel.</p>
+        <div id="repair-msg"></div>
+        <div class="field"><label>Nombre de la peluquería</label><input id="repair-name"></div>
+        <div class="field"><label>WhatsApp</label><input id="repair-phone"></div>
+        <button class="btn primary" style="width:100%;margin-top:14px" onclick="repairProfile()">Crear perfil y entrar</button>
+        <button class="btn" style="width:100%;margin-top:8px" onclick="auth.signOut()">Cerrar sesión</button>
+      </div>
+    </section>`;
+}
+
+async function repairProfile(){
+  const u=auth.currentUser;
+  const n=document.getElementById("repair-name").value.trim();
+  const p=document.getElementById("repair-phone").value.trim();
+  const msg=document.getElementById("repair-msg");
+  if(!u||!n){
+    msg.innerHTML='<p style="color:var(--r);margin-top:10px">Ingresá el nombre de la peluquería.</p>';
+    return;
+  }
+
+  try{
+    const slug=(slugify(n)||"peluqueria")+"-"+u.uid.slice(0,6).toLowerCase();
+    let weekly={};
+    for(let d=0;d<7;d++) weekly[d]={closed:d===0,start:"10:00",end:"19:20"};
+    const obj={
+      name:n,phone:p,email:u.email||"",slug,description:"",
+      createdAt:Date.now(),
+      branches:{principal:{name:"Sucursal principal",address:"",active:true}},
+      professionals:{},services:{},workTimes:defs,
+      weeklyHours:weekly,closedDates:{},professionalAbsences:{}
+    };
+    await db.ref(`negocios/${u.uid}`).set(obj);
+    try{await syncPublic(u.uid,obj)}catch(e){console.warn(e)}
+    await dashboard();
+  }catch(err){
+    msg.innerHTML='<p style="color:var(--r);margin-top:10px">'+esc(err.message)+'</p>';
+  }
+}
+
 function renderDash(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="head"><div><div class="k">Panel del negocio</div><div class="title">${esc(B.name)}</div><p class="muted">${esc(B.email||"")}</p></div><div class="actions"><button class="btn" onclick="location.href='index.html?negocio=${B.slug}'">Ver página de clientes</button><button class="btn" onclick="auth.signOut()">Cerrar sesión</button></div></div><div class="stats"><div class="stat a"><small>Turnos activos</small><strong id="s1">0</strong></div><div class="stat"><small>Turnos hoy</small><strong id="s2">0</strong></div><div class="stat"><small>Clientes</small><strong id="s3">0</strong></div><div class="stat"><small>Ingresos</small><strong id="s4">$ 0</strong></div></div><div class="tabs"><button class="btn tab active" onclick="show('agenda',this)">Agenda</button><button class="btn tab" onclick="show('stats',this)">Estadísticas</button><button class="btn tab" onclick="show('hours',this)">Horarios</button><button class="btn tab" onclick="show('days',this)">Días no laborables</button><button class="btn tab" onclick="show('pros',this)">Profesionales</button><button class="btn tab" onclick="show('branches',this)">Sucursales</button><button class="btn tab" onclick="show('services',this)">Servicios</button><button class="btn tab" onclick="show('link',this)">Mi link</button></div>
 <div id="agenda" class="panel active card"><div class="k">Recepción</div><div class="title" style="font-size:20px">Cuadro de turnos</div><p class="muted">Vas a ver espacios disponibles, reservados y ausencias.</p><div class="controls"><div class="field"><label>Sucursal</label><select id="ab" onchange="prosFilter();agendaGrid()">${branchOptions()}</select></div><div class="field"><label>Profesional</label><select id="ap" onchange="agendaGrid()"></select></div><div class="field"><label>Fecha</label><input id="ad" type="date" onchange="agendaGrid()"></div></div><div id="ag"></div></div>
 <div id="stats" class="panel card"><div class="title" style="font-size:20px">Estadísticas</div><div id="extra" style="margin-top:14px"></div></div>
@@ -66,5 +292,10 @@ function branchPanel(){const r=Object.entries(B.branches||{}).map(([id,b])=>`<di
 async function addBranch(){const n=document.getElementById("bn").value.trim();if(!n)return;await db.ref(`negocios/${B.id}/branches`).push({name:n,address:document.getElementById("ba").value.trim(),active:true});await refreshAndSync();await dashboard()}
 function servicePanel(){const r=Object.entries(B.services||{}).map(([id,s])=>`<div class="row"><div><b>${esc(s.name)}</b><small>${s.duration||40} min · $ ${Number(s.price||0).toLocaleString("es-AR")}</small></div></div>`).join("");return `<div class="title" style="font-size:20px">Servicios</div><div class="grid2"><div class="field"><label>Nombre</label><input id="sn"></div><div class="field"><label>Precio</label><input id="sp" type="number"></div><div class="field"><label>Duración</label><input id="sdur" type="number" value="40"></div><div class="field"><label>Descripción</label><input id="sdesc"></div></div><button class="btn gold" onclick="addService()">Agregar</button>${r}`}
 async function addService(){const n=document.getElementById("sn").value.trim();if(!n)return;await db.ref(`negocios/${B.id}/services`).push({name:n,price:Number(document.getElementById("sp").value||0),duration:Number(document.getElementById("sdur").value||40),description:document.getElementById("sdesc").value.trim(),active:true});await refreshAndSync();await dashboard()}
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter") return;
+  if(document.activeElement?.id==="lw") log();
+  if(document.activeElement?.id==="rw") reg();
+});
 auth.onAuthStateChanged(async u=>{if(u)await dashboard();else loginUI()});
 </script></body></html>
