@@ -13,7 +13,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,10,11,.9);backdrop-fi
 .table-wrap{overflow:auto;border:1px solid var(--b);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:980px}.table th{background:#151619;color:var(--m);font-size:9px;text-transform:uppercase;letter-spacing:1px;text-align:left;padding:11px}.table td{padding:12px 11px;border-top:1px solid rgba(255,255,255,.05);font-size:11px}.badge{display:inline-flex;padding:5px 8px;border-radius:7px;font-size:9px;font-weight:900}.bg{color:var(--g);background:rgba(105,211,155,.08)}.ba{color:var(--a);background:rgba(215,179,90,.1)}.bm{color:var(--m);background:#22242a}.br{color:var(--r);background:rgba(228,125,125,.08)}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 
-.auth{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:920px;margin:55px auto}.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:14px}.tab.active{background:#fff;color:#000}.panel{display:none}.panel.active{display:block}.controls{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:10px;margin-bottom:12px}.date-control{display:grid;grid-template-columns:38px 1fr 38px;gap:6px;align-items:end}.date-control .field{margin-top:0}.date-nav{height:42px;margin-top:19px;padding:0}.today-btn{margin-top:7px;width:100%}.agenda-date-label{font-size:12px;font-weight:800;color:var(--a);margin-top:7px;text-align:center}.schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.day{border:1px solid var(--b);border-radius:12px;padding:10px;background:#101113}.day input{width:100%;margin-top:7px;padding:8px;background:#0e0f11;color:#fff;border:1px solid var(--b);border-radius:8px}.day label{display:flex;gap:5px;align-items:center;color:var(--m);font-size:10px;margin-top:7px}.copy{display:flex;gap:8px}.copy input{flex:1}@media(max-width:900px){.controls{grid-template-columns:1fr}.schedule{grid-template-columns:repeat(2,1fr)}}@media(max-width:800px){.auth{grid-template-columns:1fr}.head{flex-direction:column}}
+.auth{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:920px;margin:55px auto}.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:14px}.tab.active{background:#fff;color:#000}.panel{display:none}.panel.active{display:block}.controls{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:10px;margin-bottom:12px}.date-control{display:grid;grid-template-columns:38px 1fr 38px;gap:6px;align-items:end}.date-control .field{margin-top:0}.date-nav{height:42px;margin-top:19px;padding:0}.today-btn{margin-top:7px;width:100%}.agenda-date-label{font-size:12px;font-weight:800;color:var(--a);margin-top:7px;text-align:center}.schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.day{border:1px solid var(--b);border-radius:12px;padding:10px;background:#101113}.day input{width:100%;margin-top:7px;padding:8px;background:#0e0f11;color:#fff;border:1px solid var(--b);border-radius:8px}.day label{display:flex;gap:5px;align-items:center;color:var(--m);font-size:10px;margin-top:7px}.copy{display:flex;gap:8px}.copy input{flex:1}.pro-schedule-box{margin-top:18px;padding-top:18px;border-top:1px solid var(--b)}.pro-schedule-head{display:flex;justify-content:space-between;gap:10px;align-items:end;flex-wrap:wrap}@media(max-width:900px){.controls{grid-template-columns:1fr}.schedule{grid-template-columns:repeat(2,1fr)}}@media(max-width:800px){.auth{grid-template-columns:1fr}.head{flex-direction:column}}
 </style></head>
 <body><header><div class="nav" style="justify-content:center"><div class="brand">TURNOS <span>PRO</span></div></div></header><main id="app"></main>
 <script>
@@ -26,7 +26,7 @@ const firebaseConfig={
   messagingSenderId:"360287665229",
   appId:"1:360287665229:web:b0c48af17c5dbec7fdb004"
 };
-firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();let B=null,BOOK={};
+firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();let B=null,BOOK={};let bookingListenerRef=null;
 const defs=["10:00","10:40","11:20","12:00","12:40","13:20","14:00","14:40","15:20","16:00","16:40","17:20","18:00","18:40","19:20"],days=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])),slugify=v=>v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 function loginUI(){
@@ -120,7 +120,7 @@ async function reg(){
       createdAt:Date.now(),
       branches:{principal:{name:"Sucursal principal",address:"",active:true}},
       professionals:{},services:{},workTimes:defs,
-      weeklyHours:weekly,closedDates:{},professionalAbsences:{}
+      weeklyHours:weekly,closedDates:{},professionalAbsences:{},professionalSchedules:{}
     };
 
     await db.ref(`negocios/${uid}`).set(obj);
@@ -182,7 +182,7 @@ async function log(){
 }
 
 async function getBusiness(){const u=auth.currentUser;if(!u)return null;const s=await db.ref(`negocios/${u.uid}`).once("value");return s.exists()?{...s.val(),id:u.uid}:null}
-function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{}}}
+function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{},professionalSchedules:o.professionalSchedules||{}}}
 async function syncPublic(uid,obj){await db.ref(`publicProfiles/${obj.slug}`).set(publicPayload(uid,obj))}
 async function refreshAndSync(){B=await getBusiness();if(B){try{await syncPublic(B.id,B)}catch(e){console.warn("sync public:",e)}}}
 async function dashboard(){
@@ -198,6 +198,7 @@ async function dashboard(){
 
     // Primero mostramos el panel. Una falla del perfil público nunca bloquea el login.
     renderDash();
+    attachBookingListener();
 
     syncPublic(B.id,B).catch(err=>{
       console.warn("No se pudo sincronizar el perfil público:",err);
@@ -253,7 +254,7 @@ async function repairProfile(){
       createdAt:Date.now(),
       branches:{principal:{name:"Sucursal principal",address:"",active:true}},
       professionals:{},services:{},workTimes:defs,
-      weeklyHours:weekly,closedDates:{},professionalAbsences:{}
+      weeklyHours:weekly,closedDates:{},professionalAbsences:{},professionalSchedules:{}
     };
     await db.ref(`negocios/${u.uid}`).set(obj);
     try{await syncPublic(u.uid,obj)}catch(e){console.warn(e)}
@@ -261,6 +262,18 @@ async function repairProfile(){
   }catch(err){
     msg.innerHTML='<p style="color:var(--r);margin-top:10px">'+esc(err.message)+'</p>';
   }
+}
+
+function attachBookingListener(){
+  if(!B?.id)return;
+  if(bookingListenerRef)bookingListenerRef.off();
+  bookingListenerRef=db.ref(`negocios/${B.id}/turnos`);
+  bookingListenerRef.on("value",snap=>{
+    BOOK=snap.val()||{};
+    // Actualizamos estadísticas y agenda sin recargar el panel entero.
+    if(document.getElementById("s1")) fillStats();
+    if(document.getElementById("ag")) agendaGrid();
+  });
 }
 
 function renderDash(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="head"><div><div class="k">Panel del negocio</div><div class="title">${esc(B.name)}</div><p class="muted">${esc(B.email||"")}</p></div><div class="actions"><button class="btn" onclick="location.href='index.html?negocio=${B.slug}'">Ver página de clientes</button><button class="btn" onclick="auth.signOut()">Cerrar sesión</button></div></div><div class="stats"><div class="stat a"><small>Turnos activos</small><strong id="s1">0</strong></div><div class="stat"><small>Turnos hoy</small><strong id="s2">0</strong></div><div class="stat"><small>Clientes</small><strong id="s3">0</strong></div><div class="stat"><small>Ingresos</small><strong id="s4">$ 0</strong></div></div><div class="tabs"><button class="btn tab active" onclick="show('agenda',this)">Agenda</button><button class="btn tab" onclick="show('stats',this)">Estadísticas</button><button class="btn tab" onclick="show('hours',this)">Horarios</button><button class="btn tab" onclick="show('days',this)">Días no laborables</button><button class="btn tab" onclick="show('pros',this)">Profesionales</button><button class="btn tab" onclick="show('branches',this)">Sucursales</button><button class="btn tab" onclick="show('services',this)">Servicios</button><button class="btn tab" onclick="show('link',this)">Mi link</button></div>
@@ -305,22 +318,89 @@ function moveAgendaDate(delta){
   agendaGrid();
 }
 
-function show(id,b){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');b.classList.add('active')}
+function show(id,b){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');b.classList.add('active');if(id==="pros")setTimeout(renderProSchedule,0)}
 function branchOptions(){return Object.entries(B.branches||{}).filter(([,x])=>x.active!==false).map(([id,b])=>`<option value="${id}">${esc(b.name)}</option>`).join("")}
 function proOptions(){return Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false).map(([id,p])=>`<option value="${id}">${esc(p.name)}</option>`).join("")}
 function fillStats(){const a=Object.values(BOOK).filter(x=>x.status!=="cancelled"),today=localDateString(),clients=new Set(a.map(x=>x.phone||x.patient)).size,m=a.reduce((q,x)=>q+Number(x.totalPrice||0),0);document.getElementById("s1").textContent=a.length;document.getElementById("s2").textContent=a.filter(x=>x.dateStr===today).length;document.getElementById("s3").textContent=clients;document.getElementById("s4").textContent="$ "+m.toLocaleString("es-AR");let sv={},pr={};a.forEach(x=>{sv[x.service]=(sv[x.service]||0)+1;let p=x.professionalName||x.barber||"—";pr[p]=(pr[p]||0)+1});let top=o=>Object.entries(o).sort((a,b)=>b[1]-a[1])[0];document.getElementById("extra").innerHTML=`<div class="grid2"><div class="row"><div><b>Servicio más reservado</b><small>${esc(top(sv)?.[0]||"Sin datos")}</small></div><strong>${top(sv)?.[1]||0}</strong></div><div class="row"><div><b>Profesional con más turnos</b><small>${esc(top(pr)?.[0]||"Sin datos")}</small></div><strong>${top(pr)?.[1]||0}</strong></div></div>`}
 function weekUI(){document.getElementById("week").innerHTML=days.map((n,i)=>{const c=B.weeklyHours?.[i]||{closed:false,start:"10:00",end:"19:20"};return `<div class="day"><b>${n}</b><label><input id="wc${i}" type="checkbox" ${c.closed?"checked":""}> Cerrado</label><input id="ws${i}" type="time" value="${c.start||"10:00"}"><input id="we${i}" type="time" value="${c.end||"19:20"}"></div>`}).join("")}
 async function saveWeek(){let o={};for(let i=0;i<7;i++)o[i]={closed:document.getElementById("wc"+i).checked,start:document.getElementById("ws"+i).value,end:document.getElementById("we"+i).value};await db.ref(`negocios/${B.id}/weeklyHours`).set(o);await refreshAndSync();await dashboard()}
-function allowed(d){const c=B.weeklyHours?.[new Date(d+"T12:00:00").getDay()];if(c?.closed)return[];let a=B.workTimes||defs;const M=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};if(c?.start&&c?.end){const x=M(c.start),y=M(c.end);a=a.filter(t=>M(t)>=x&&M(t)<=y)}return a}
+function allowed(d,pid=null){
+  const dow=new Date(d+"T12:00:00").getDay();
+  const businessCfg=B.weeklyHours?.[dow];
+  if(businessCfg?.closed)return[];
+
+  const proCfg=pid?B.professionalSchedules?.[pid]?.[dow]:null;
+  if(proCfg?.closed)return[];
+
+  let a=B.workTimes||defs;
+  const M=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};
+  let start=businessCfg?.start||"00:00",end=businessCfg?.end||"23:59";
+  if(proCfg?.start)start=proCfg.start;
+  if(proCfg?.end)end=proCfg.end;
+  const x=M(start),y=M(end);
+  return a.filter(t=>M(t)>=x&&M(t)<=y);
+}
 function prosFilter(){const branch=document.getElementById("ab").value;document.getElementById("ap").innerHTML='<option value="ALL">Todos</option>'+Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).map(([id,p])=>`<option value="${id}">${esc(p.name)}</option>`).join("")}
-function agendaGrid(){const branch=document.getElementById("ab").value,pf=document.getElementById("ap").value,d=document.getElementById("ad").value;if(!d)return;if(B.closedDates?.[d]?.closed){document.getElementById("ag").innerHTML=`<div class="row"><div><b>Local cerrado</b><small>${esc(B.closedDates[d].reason||"Día no laborable")}</small></div><span class="badge br">Cerrado</span></div>`;return}const ps=Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).filter(([id])=>pf==="ALL"||id===pf);let rows="";ps.forEach(([pid,p])=>allowed(d).forEach(t=>{const absent=B.professionalAbsences?.[pid]?.[d]?.absent,b=Object.entries(BOOK).map(([key,x])=>({...x,key})).find(x=>x.status!=="cancelled"&&x.dateStr===d&&x.time===t&&(x.professionalId===pid||x.barber===p.name));if(absent)rows+=`<tr><td>${t}</td><td>${esc(p.name)}</td><td><span class="badge bm">Ausente</span></td><td colspan="5">${esc(B.professionalAbsences[pid][d].reason||"No trabaja")}</td><td>—</td></tr>`;else if(b)rows+=`<tr><td><b>${t}</b></td><td>${esc(p.name)}</td><td><span class="badge ba">Reservado</span></td><td><b>${esc(b.patient||"")}</b></td><td>${esc(b.phone||"")}</td><td>${esc(b.service||"")}</td><td>$ ${Number(b.totalPrice||0).toLocaleString("es-AR")}</td><td>${esc(b.branchName||"")}</td><td><button class="btn danger" onclick="cancelT('${b.key}')">Cancelar</button></td></tr>`;else rows+=`<tr><td><b>${t}</b></td><td>${esc(p.name)}</td><td><span class="badge bg">Disponible</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>Libre</td></tr>`}));document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Hora</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay profesionales para este filtro.</td></tr>'}</tbody></table></div>`}
+function agendaGrid(){const branch=document.getElementById("ab").value,pf=document.getElementById("ap").value,d=document.getElementById("ad").value;if(!d)return;if(B.closedDates?.[d]?.closed){document.getElementById("ag").innerHTML=`<div class="row"><div><b>Local cerrado</b><small>${esc(B.closedDates[d].reason||"Día no laborable")}</small></div><span class="badge br">Cerrado</span></div>`;return}const ps=Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).filter(([id])=>pf==="ALL"||id===pf);let rows="";ps.forEach(([pid,p])=>allowed(d,pid).forEach(t=>{const absent=B.professionalAbsences?.[pid]?.[d]?.absent,b=Object.entries(BOOK).map(([key,x])=>({...x,key})).find(x=>x.status!=="cancelled"&&String(x.dateStr||"")===String(d)&&String(x.time||"")===String(t)&&(String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(p.name)));if(absent)rows+=`<tr><td>${t}</td><td>${esc(p.name)}</td><td><span class="badge bm">Ausente</span></td><td colspan="5">${esc(B.professionalAbsences[pid][d].reason||"No trabaja")}</td><td>—</td></tr>`;else if(b)rows+=`<tr><td><b>${t}</b></td><td>${esc(p.name)}</td><td><span class="badge ba">Reservado</span></td><td><b>${esc(b.patient||"")}</b></td><td>${esc(b.phone||"")}</td><td>${esc(b.service||"")}</td><td>$ ${Number(b.totalPrice||0).toLocaleString("es-AR")}</td><td>${esc(b.branchName||"")}</td><td><button class="btn danger" onclick="cancelT('${b.key}')">Cancelar</button></td></tr>`;else rows+=`<tr><td><b>${t}</b></td><td>${esc(p.name)}</td><td><span class="badge bg">Disponible</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>Libre</td></tr>`}));document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Hora</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay profesionales para este filtro.</td></tr>'}</tbody></table></div>`}
 async function cancelT(k){if(confirm("¿Cancelar turno?")){await db.ref(`negocios/${B.id}/turnos/${k}`).update({status:"cancelled",cancelledAt:Date.now()});await dashboard()}}
 function lists(){document.getElementById("cl").innerHTML=Object.entries(B.closedDates||{}).filter(([,x])=>x.closed).map(([d,x])=>`<div class="row"><div><b>${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeClosed('${d}')">Quitar</button></div>`).join("");let a=[];Object.entries(B.professionalAbsences||{}).forEach(([p,ds])=>Object.entries(ds||{}).forEach(([d,x])=>x.absent&&a.push([p,d,x])));document.getElementById("xl").innerHTML=a.map(([p,d,x])=>`<div class="row"><div><b>${esc(B.professionals?.[p]?.name||"")} · ${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeAbs('${p}','${d}')">Quitar</button></div>`).join("")}
 async function closeDay(){const d=document.getElementById("cd").value;if(!d)return;await db.ref(`negocios/${B.id}/closedDates/${d}`).set({closed:true,reason:document.getElementById("cr").value.trim()});await refreshAndSync();await dashboard()}
 async function removeClosed(d){await db.ref(`negocios/${B.id}/closedDates/${d}`).remove();await refreshAndSync();await dashboard()}
 async function absence(){const p=document.getElementById("xp").value,d=document.getElementById("xd").value;if(!p||!d)return;await db.ref(`negocios/${B.id}/professionalAbsences/${p}/${d}`).set({absent:true,reason:document.getElementById("xr").value.trim()});await refreshAndSync();await dashboard()}
 async function removeAbs(p,d){await db.ref(`negocios/${B.id}/professionalAbsences/${p}/${d}`).remove();await refreshAndSync();await dashboard()}
-function prosPanel(){const opts=branchOptions(),r=Object.entries(B.professionals||{}).map(([id,p])=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(B.branches?.[p.branchId]?.name||"")} · ${esc(p.specialty||"")}</small></div><div class="actions"><button class="btn ${p.active===false?"green":"danger"}" onclick="togglePro('${id}',${p.active===false?"true":"false"})">${p.active===false?"Activar":"Dar de baja"}</button><button class="btn" onclick="replacePro('${id}')">Reemplazar</button></div></div>`).join("");return `<div class="title" style="font-size:20px">Profesionales</div><div class="grid2"><div class="field"><label>Nombre</label><input id="pn"></div><div class="field"><label>Especialidad</label><input id="ps"></div></div><div class="field"><label>Sucursal</label><select id="pb">${opts}</select></div><button class="btn gold" onclick="addPro()">Agregar</button>${r}`}
+function prosPanel(){
+  const opts=branchOptions();
+  const activePros=Object.entries(B.professionals||{});
+  const r=activePros.map(([id,p])=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(B.branches?.[p.branchId]?.name||"")} · ${esc(p.specialty||"")}</small></div><div class="actions"><button class="btn ${p.active===false?"green":"danger"}" onclick="togglePro('${id}',${p.active===false?"true":"false"})">${p.active===false?"Activar":"Dar de baja"}</button><button class="btn" onclick="replacePro('${id}')">Reemplazar</button></div></div>`).join("");
+
+  return `<div class="title" style="font-size:20px">Profesionales</div>
+  <div class="grid2"><div class="field"><label>Nombre</label><input id="pn"></div><div class="field"><label>Especialidad</label><input id="ps"></div></div>
+  <div class="field"><label>Sucursal</label><select id="pb">${opts}</select></div>
+  <button class="btn gold" onclick="addPro()">Agregar</button>
+  ${r}
+  <div class="pro-schedule-box">
+    <div class="pro-schedule-head">
+      <div>
+        <div class="k">Horarios por profesional</div>
+        <div class="title" style="font-size:18px">Asignar horario individual</div>
+        <p class="muted">Si no configurás uno, usa el horario general del local.</p>
+      </div>
+      <div class="field" style="min-width:230px"><label>Profesional</label><select id="schedule-pro" onchange="renderProSchedule()">${activePros.filter(([,p])=>p.active!==false).map(([id,p])=>`<option value="${id}">${esc(p.name)}</option>`).join("")}</select></div>
+    </div>
+    <div id="pro-week" class="schedule" style="margin-top:12px"></div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn gold" onclick="saveProSchedule()">Guardar horario del profesional</button>
+      <button class="btn" onclick="clearProSchedule()">Usar horario general</button>
+    </div>
+  </div>`;
+}
+function renderProSchedule(){
+  const sel=document.getElementById("schedule-pro"),box=document.getElementById("pro-week");
+  if(!sel||!box)return;
+  const pid=sel.value;
+  if(!pid){box.innerHTML='<p class="muted">Agregá un profesional para configurar horarios.</p>';return}
+  const cfg=B.professionalSchedules?.[pid]||{};
+  box.innerHTML=days.map((n,i)=>{
+    const general=B.weeklyHours?.[i]||{closed:false,start:"10:00",end:"19:20"};
+    const c=cfg[i]||{closed:general.closed,start:general.start||"10:00",end:general.end||"19:20"};
+    return `<div class="day"><b>${n}</b><label><input id="pc${i}" type="checkbox" ${c.closed?"checked":""}> No trabaja</label><input id="pss${i}" type="time" value="${c.start||"10:00"}"><input id="pee${i}" type="time" value="${c.end||"19:20"}"></div>`;
+  }).join("");
+}
+async function saveProSchedule(){
+  const pid=document.getElementById("schedule-pro")?.value;
+  if(!pid)return;
+  const out={};
+  for(let i=0;i<7;i++)out[i]={closed:document.getElementById("pc"+i).checked,start:document.getElementById("pss"+i).value,end:document.getElementById("pee"+i).value};
+  await db.ref(`negocios/${B.id}/professionalSchedules/${pid}`).set(out);
+  await refreshAndSync();await dashboard();
+}
+async function clearProSchedule(){
+  const pid=document.getElementById("schedule-pro")?.value;
+  if(!pid)return;
+  if(!confirm("¿Hacer que este profesional vuelva a usar el horario general del local?"))return;
+  await db.ref(`negocios/${B.id}/professionalSchedules/${pid}`).remove();
+  await refreshAndSync();await dashboard();
+}
 async function addPro(){const n=document.getElementById("pn").value.trim(),b=document.getElementById("pb").value;if(!n||!b)return;await db.ref(`negocios/${B.id}/professionals`).push({name:n,specialty:document.getElementById("ps").value.trim(),branchId:b,active:true});await refreshAndSync();await dashboard()}
 async function togglePro(id,val){await db.ref(`negocios/${B.id}/professionals/${id}`).update({active:val});await refreshAndSync();await dashboard()}
 async function replacePro(id){const p=B.professionals[id],n=prompt("Nombre del reemplazo:",p.name);if(!n)return;const s=prompt("Especialidad:",p.specialty||"")||"";await db.ref(`negocios/${B.id}/professionals/${id}`).update({name:n,specialty:s,active:true,replacedAt:Date.now()});await refreshAndSync();await dashboard()}
