@@ -7,6 +7,7 @@
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
@@ -503,125 +504,6 @@ header{
   .btn-add{width:36px;height:36px}
 }
 
-/* ==================== RECEPCIÓN / ADMIN ==================== */
-.admin-page{
-  max-width:1180px;margin:0 auto;padding:28px 18px 60px;
-}
-.admin-topbar{
-  display:flex;justify-content:space-between;align-items:flex-start;gap:18px;
-  margin-bottom:24px;
-}
-.admin-kicker{
-  color:var(--accent);font-size:10px;font-weight:850;letter-spacing:2px;
-  text-transform:uppercase;margin-bottom:7px;
-}
-.admin-title{font-size:28px;letter-spacing:-.8px;font-weight:800}
-.admin-subtitle{color:var(--muted);font-size:12px;margin-top:6px}
-.admin-actions{display:flex;gap:8px;align-items:center}
-.admin-login{
-  width:min(430px,100%);margin:70px auto;padding:26px;
-  background:linear-gradient(180deg,var(--surface-2),var(--surface));
-  border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);
-}
-.admin-login .lock-icon{
-  width:48px;height:48px;border-radius:14px;background:var(--accent-soft);
-  border:1px solid var(--accent-border);display:flex;align-items:center;
-  justify-content:center;color:var(--accent);font-size:20px;margin-bottom:18px;
-}
-.admin-login h2{font-size:21px;font-weight:800;letter-spacing:-.4px}
-.admin-login p{color:var(--muted);font-size:12px;line-height:1.55;margin:7px 0 20px}
-.admin-login .login-error{
-  display:none;color:var(--danger);font-size:11px;margin:-6px 0 14px;
-}
-.admin-dashboard{display:none}
-.admin-filters{
-  display:grid;grid-template-columns:1.1fr 1.1fr .8fr;gap:10px;
-  background:linear-gradient(180deg,var(--surface-2),var(--surface));
-  border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:16px;
-}
-.admin-filter label{
-  display:block;color:var(--muted-2);font-size:9px;font-weight:850;
-  text-transform:uppercase;letter-spacing:1px;margin:0 0 7px;
-}
-.admin-filter select,.admin-filter input{
-  width:100%;background:var(--surface);border:1px solid var(--border);
-  color:var(--text);border-radius:10px;padding:11px 12px;outline:none;font-size:12px;
-}
-.admin-filter select:focus,.admin-filter input:focus{
-  border-color:var(--accent-border);box-shadow:0 0 0 3px var(--accent-soft);
-}
-.admin-stats{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;
-}
-.admin-stat{
-  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;
-}
-.admin-stat .label{color:var(--muted);font-size:10px}
-.admin-stat .value{font-size:21px;font-weight:850;margin-top:5px}
-.admin-stat.accent .value{color:var(--accent)}
-.admin-table-wrap{
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;
-  overflow:hidden;box-shadow:0 16px 45px rgba(0,0,0,.2);
-}
-.admin-table-head{
-  padding:16px 17px;border-bottom:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;gap:12px;
-}
-.admin-table-head h3{font-size:14px;font-weight:800}
-.admin-table-head span{font-size:10px;color:var(--muted)}
-.admin-table-scroll{overflow-x:auto}
-.admin-table{
-  width:100%;border-collapse:collapse;min-width:850px;
-}
-.admin-table th{
-  text-align:left;background:#151619;color:var(--muted-2);font-size:9px;
-  letter-spacing:.9px;text-transform:uppercase;padding:11px 14px;
-  border-bottom:1px solid var(--border);white-space:nowrap;
-}
-.admin-table td{
-  padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.045);
-  font-size:11px;vertical-align:middle;
-}
-.admin-table tbody tr{transition:background .15s}
-.admin-table tbody tr:hover{background:rgba(255,255,255,.025)}
-.admin-table tbody tr:last-child td{border-bottom:0}
-.admin-client{font-weight:760}
-.admin-client small{display:block;color:var(--muted);font-weight:500;margin-top:3px}
-.admin-pro{font-weight:700}
-.admin-pro small{display:block;color:var(--muted);font-weight:500;margin-top:3px}
-.status-badge{
-  display:inline-flex;align-items:center;gap:5px;padding:5px 8px;
-  border-radius:7px;font-size:9px;font-weight:800;white-space:nowrap;
-}
-.status-badge.available{background:rgba(105,211,155,.08);color:var(--success);border:1px solid rgba(105,211,155,.18)}
-.status-badge.reserved{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-border)}
-.status-badge.expired{background:rgba(255,255,255,.04);color:var(--muted-2);border:1px solid var(--border)}
-.status-badge.cancelled{background:rgba(228,125,125,.08);color:var(--danger);border:1px solid rgba(228,125,125,.18)}
-.admin-cancel{
-  background:transparent;border:1px solid var(--border);color:var(--muted);
-  border-radius:8px;padding:7px 9px;font-size:10px;font-weight:750;cursor:pointer;
-  transition:.18s;
-}
-.admin-cancel:hover{border-color:rgba(228,125,125,.4);color:var(--danger);background:rgba(228,125,125,.06)}
-.admin-empty{text-align:center;padding:42px 18px;color:var(--muted);font-size:12px}
-.admin-date-group{
-  background:#151619;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  padding:8px 14px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.5px;
-}
-.admin-note{
-  margin-top:10px;color:var(--muted-2);font-size:10px;line-height:1.5;
-}
-@media(max-width:800px){
-  .admin-filters{grid-template-columns:1fr}
-  .admin-stats{grid-template-columns:repeat(2,1fr)}
-  .admin-topbar{flex-direction:column}
-}
-@media(max-width:520px){
-  .admin-page{padding:20px 13px 40px}
-  .admin-title{font-size:23px}
-}
-
-
 /* DESKTOP PRO BOOKING LAYOUT */
 @media(min-width:881px){
   .wizard-body{
@@ -658,88 +540,18 @@ header{
 <!-- HEADER NAVBAR -->
 <header>
   <div class="nav-container">
-    <div class="brand-logo" onclick="goToStep(1)">BARBER <span>DEMO</span></div>
+    <div id="public-brand-logo" class="brand-logo" onclick="goToStep(1)">BARBER <span>DEMO</span></div>
     <div class="nav-actions">
       <button class="btn-outline" onclick="openModal('modal-location')">⌖ Sucursales</button>
-      <button class="btn-outline" onclick="openReception()">▣ Recepción</button>
+      <a class="btn-outline" href="negocios.html" style="text-decoration:none;">▣ Soy peluquería</a>
     </div>
   </div>
 </header>
 
-<!-- RECEPCIÓN / PANEL PRIVADO -->
-<div id="reception-page" class="view">
-  <div id="reception-login" class="admin-login">
-    <div class="lock-icon">▣</div>
-    <div class="admin-kicker">Acceso privado</div>
-    <h2>Panel de recepción</h2>
-    <p>Ingresá con la contraseña del local para consultar la agenda, clientes y disponibilidad.</p>
-
-    <div class="form-group">
-      <label for="reception-password">Contraseña</label>
-      <input id="reception-password" type="password" autocomplete="current-password"
-             placeholder="Ingresá la contraseña">
-    </div>
-    <div id="reception-login-error" class="login-error">Contraseña incorrecta.</div>
-    <button class="btn-continue" onclick="receptionLogin()">Ingresar <span style="margin-left:7px">→</span></button>
-    <div class="admin-note">La contraseña definitiva puede configurarse cuando el servicio sea activado para el local.</div>
-  </div>
-
-  <div id="reception-dashboard" class="admin-dashboard admin-page">
-    <div class="admin-topbar">
-      <div>
-        <div class="admin-kicker">Gestión del local</div>
-        <h1 class="admin-title">Agenda de turnos</h1>
-        <p class="admin-subtitle">Vista general de reservas y espacios disponibles en tiempo real.</p>
-      </div>
-      <div class="admin-actions">
-        <button class="btn-outline" onclick="goToStep(1)">← Volver a la web</button>
-        <button class="btn-outline" onclick="receptionLogout()">Cerrar sesión</button>
-      </div>
-    </div>
-
-    <div class="admin-filters">
-      <div class="admin-filter">
-        <label for="admin-branch">Sucursal</label>
-        <select id="admin-branch" onchange="renderReceptionAgenda()">
-          <option value="sucursal1">Sucursal Centro</option>
-          <option value="sucursal2">Sucursal Norte</option>
-        </select>
-      </div>
-      <div class="admin-filter">
-        <label for="admin-pro">Profesional</label>
-        <select id="admin-pro" onchange="renderReceptionAgenda()">
-          <option value="ALL">Todos los profesionales</option>
-        </select>
-      </div>
-      <div class="admin-filter">
-        <label for="admin-date">Fecha</label>
-        <input id="admin-date" type="date" onchange="renderReceptionAgenda()">
-      </div>
-    </div>
-
-    <div class="admin-stats">
-      <div class="admin-stat accent"><div class="label">Turnos reservados</div><div id="admin-stat-reserved" class="value">0</div></div>
-      <div class="admin-stat"><div class="label">Espacios libres</div><div id="admin-stat-free" class="value">0</div></div>
-      <div class="admin-stat"><div class="label">Profesionales</div><div id="admin-stat-pros" class="value">0</div></div>
-      <div class="admin-stat"><div class="label">Agenda total</div><div id="admin-stat-total" class="value">0</div></div>
-    </div>
-
-    <div class="admin-table-wrap">
-      <div class="admin-table-head">
-        <div>
-          <h3 id="admin-agenda-title">Agenda</h3>
-          <span>Los horarios pasados se muestran deshabilitados automáticamente.</span>
-        </div>
-      </div>
-      <div id="admin-agenda-container"></div>
-    </div>
-  </div>
-</div>
-
 <!-- STEP 1: LANDING PAGE VIEW -->
 <div id="step-1" class="view active">
   <div class="hero-section">
-    <div class="hero-subtitle-tag">— BARBER DEMO · SISTEMA DE RESERVAS —</div>
+    <div id="public-hero-tag" class="hero-subtitle-tag">— BARBER DEMO · SISTEMA DE RESERVAS —</div>
     <h1 class="hero-title">Tu turno agendado,<br>en <i>pocos segundos</i>.</h1>
     <p class="hero-desc">Elegí la sede, elegí tu profesional de confianza y reservá tu horario al instante sin complicaciones.</p>
     
@@ -787,50 +599,7 @@ header{
         <h2>Seleccioná tus servicios</h2>
         <p>Elegí una o más opciones para continuar con tu cita.</p>
       </div>
-
-      <div class="service-item">
-        <div class="service-info">
-          <h3>Corte & Estilo General</h3>
-          <p>⏱ 40 min · Asesoramiento personalizado + Lavado</p>
-        </div>
-        <div class="service-price-btn">
-          <div class="service-price">$ 18.000</div>
-          <button class="btn-add" onclick="toggleService('Corte & Estilo General', 18000, 40, this)">+</button>
-        </div>
-      </div>
-
-      <div class="service-item">
-        <div class="service-info">
-          <h3>Servicio Combo Premium</h3>
-          <p>⏱ 50 min · Corte + Perfilado y tratamiento facial</p>
-        </div>
-        <div class="service-price-btn">
-          <div class="service-price">$ 24.000</div>
-          <button class="btn-add" onclick="toggleService('Servicio Combo Premium', 24000, 50, this)">+</button>
-        </div>
-      </div>
-
-      <div class="service-item">
-        <div class="service-info">
-          <h3>Tratamiento Capilar Integral</h3>
-          <p>⏱ 60 min · Corte especializado + Nutrimascarilla</p>
-        </div>
-        <div class="service-price-btn">
-          <div class="service-price">$ 28.000</div>
-          <button class="btn-add" onclick="toggleService('Tratamiento Capilar Integral', 28000, 60, this)">+</button>
-        </div>
-      </div>
-
-      <div class="service-item">
-        <div class="service-info">
-          <h3>Diseño y Perfilado</h3>
-          <p>⏱ 30 min · Ritual completo de perfilado y definición</p>
-        </div>
-        <div class="service-price-btn">
-          <div class="service-price">$ 12.000</div>
-          <button class="btn-add" onclick="toggleService('Diseño y Perfilado', 12000, 30, this)">+</button>
-        </div>
-      </div>
+      <div id="dynamic-services-list"></div>
     </div>
 
     <!-- STEP 3: PROFESIONAL Y SUCURSAL -->
@@ -843,10 +612,7 @@ header{
       <div class="branch-selector-box">
         <div class="form-group" style="margin-bottom:0;">
           <label for="branch-select">Sucursal:</label>
-          <select id="branch-select" onchange="onBranchChange()">
-            <option value="sucursal1">Sucursal Centro</option>
-            <option value="sucursal2">Sucursal Norte</option>
-          </select>
+          <select id="branch-select" onchange="onBranchChange()"></select>
         </div>
       </div>
 
@@ -901,9 +667,9 @@ header{
     </button>
 
     <div class="shop-brand">
-      <div class="shop-logo">B</div>
+      <div id="public-shop-logo" class="shop-logo">B</div>
       <div class="shop-details">
-        <h4>BARBER DEMO</h4>
+        <h4 id="public-shop-name">BARBER DEMO</h4>
         <p id="summary-branch-label">Sucursal Centro</p>
       </div>
     </div>
@@ -946,19 +712,9 @@ header{
       <h3>Sucursales Disponibles</h3>
       <button class="btn-close-modal" onclick="closeModal('modal-location')">✕</button>
     </div>
-    <div style="display:flex; flex-direction:column; gap:16px;">
-      <div style="background:#181818; padding:16px; border-radius:12px; border:1px solid var(--line);">
-        <h4 style="font-size:16px; font-weight:700;">Sucursal Centro</h4>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Ubicación céntrica, Zona Comercial</p>
-        <a href="https://maps.google.com" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Ver en Mapa 🗺️</a>
-      </div>
-      <div style="background:#181818; padding:16px; border-radius:12px; border:1px solid var(--line);">
-        <h4 style="font-size:16px; font-weight:700;">Sucursal Norte</h4>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0 12px;">Ubicación Norte, Paseo Gastronómico</p>
-        <a href="https://maps.google.com" target="_blank" class="btn-outline" style="text-decoration:none; width:100%; justify-content:center;">Ver en Mapa 🗺️</a>
-      </div>
-    </div>
+    <div id="dynamic-locations-list" style="display:flex; flex-direction:column; gap:16px;"></div>
   </div>
+</div>
 </div>
 
 <!-- MODAL 2: ELEGIR PROFESIONAL -->
@@ -1042,7 +798,12 @@ const BARBER_PHONE = "1132006823";
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const barbersByBranch = {
+let ACTIVE_BUSINESS_ID = "demo-barberia";
+let ACTIVE_BUSINESS = null;
+let BARBER_PHONE = "1132006823";
+let BUSINESS_NAME = "BARBER DEMO";
+
+let barbersByBranch = {
   sucursal1: [
     { name: "Sin preferencia de profesional", sub: "Asignación más rápida", avatar: "⚡" },
     { name: "Especialista A", sub: "Cortes modernos & fade", avatar: "✂️" },
@@ -1056,7 +817,185 @@ const barbersByBranch = {
   ]
 };
 
-const workTimes = ["10:00", "10:40", "11:20", "12:00", "12:40", "13:20", "14:00", "14:40", "15:20", "16:00", "16:40", "17:20", "18:00", "18:40", "19:20"];
+let branchNames = {
+  sucursal1: "Sucursal Centro",
+  sucursal2: "Sucursal Norte"
+};
+
+let branchAddresses = {
+  sucursal1: "Ubicación céntrica, Zona Comercial",
+  sucursal2: "Ubicación Norte, Paseo Gastronómico"
+};
+
+let serviceCatalog = [
+  { id:"corte-estilo", name:"Corte & Estilo General", price:18000, duration:40, description:"Asesoramiento personalizado + Lavado" },
+  { id:"combo-premium", name:"Servicio Combo Premium", price:24000, duration:50, description:"Corte + Perfilado y tratamiento facial" },
+  { id:"capilar", name:"Tratamiento Capilar Integral", price:28000, duration:60, description:"Corte especializado + Nutrimascarilla" },
+  { id:"perfilado", name:"Diseño y Perfilado", price:12000, duration:30, description:"Ritual completo de perfilado y definición" }
+];
+
+let workTimes = ["10:00","10:40","11:20","12:00","12:40","13:20","14:00","14:40","15:20","16:00","16:40","17:20","18:00","18:40","19:20"];
+
+function slugFromQuery() {
+  return new URLSearchParams(location.search).get("negocio");
+}
+
+async function loadBusinessProfile() {
+  const slug = slugFromQuery();
+  if(!slug || slug === "barberia-demo") {
+    ACTIVE_BUSINESS_ID = "demo-barberia";
+    ACTIVE_BUSINESS = null;
+    applyBusinessToUI();
+    startBookingsListener();
+    return;
+  }
+
+  const snap = await db.ref("negocios").orderByChild("slug").equalTo(slug).once("value");
+  const data = snap.val();
+  if(!data) {
+    document.body.innerHTML = `
+      <div style="max-width:640px;margin:90px auto;padding:24px;color:#fff;font-family:Inter,system-ui;text-align:center">
+        <h1 style="font-size:28px;margin-bottom:10px">Peluquería no encontrada</h1>
+        <p style="color:#9699a1;margin-bottom:20px">El enlace puede estar mal escrito o el negocio todavía no está activo.</p>
+        <a href="${location.pathname}" style="color:#111;background:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:800">Volver</a>
+      </div>`;
+    return;
+  }
+
+  ACTIVE_BUSINESS_ID = Object.keys(data)[0];
+  ACTIVE_BUSINESS = data[ACTIVE_BUSINESS_ID];
+  BUSINESS_NAME = ACTIVE_BUSINESS.name || "Peluquería";
+  BARBER_PHONE = ACTIVE_BUSINESS.phone || "";
+
+  const branches = ACTIVE_BUSINESS.branches || {};
+  const professionals = ACTIVE_BUSINESS.professionals || {};
+  const services = ACTIVE_BUSINESS.services || {};
+
+  branchNames = {};
+  branchAddresses = {};
+  barbersByBranch = {};
+
+  Object.entries(branches).forEach(([id,b]) => {
+    branchNames[id] = b.name || "Sucursal";
+    branchAddresses[id] = b.address || "";
+    barbersByBranch[id] = [{ name:"Sin preferencia de profesional", sub:"Asignación según disponibilidad", avatar:"⚡" }];
+  });
+
+  Object.entries(professionals).forEach(([id,p]) => {
+    if(p.active === false) return;
+    const branchId = p.branchId;
+    if(!barbersByBranch[branchId]) return;
+    barbersByBranch[branchId].push({
+      id,
+      name:p.name || "Profesional",
+      sub:p.specialty || "Profesional",
+      avatar:"✂️"
+    });
+  });
+
+  serviceCatalog = Object.entries(services)
+    .filter(([,s]) => s.active !== false)
+    .map(([id,s]) => ({
+      id,
+      name:s.name || "Servicio",
+      price:Number(s.price || 0),
+      duration:Number(s.duration || 40),
+      description:s.description || ""
+    }));
+
+  if(Array.isArray(ACTIVE_BUSINESS.workTimes) && ACTIVE_BUSINESS.workTimes.length) {
+    workTimes = ACTIVE_BUSINESS.workTimes;
+  }
+
+  const firstBranch = Object.keys(branchNames)[0];
+  selectedBranch = firstBranch || "";
+  selectedPro = (barbersByBranch[selectedBranch] || [])[0] || {name:"Sin preferencia de profesional",sub:"",avatar:"⚡"};
+
+  applyBusinessToUI();
+  startBookingsListener();
+}
+
+function applyBusinessToUI() {
+  const name = BUSINESS_NAME;
+  const firstLetter = (name || "P").charAt(0).toUpperCase();
+
+  const brand = document.getElementById("public-brand-logo");
+  if(brand) brand.innerHTML = `${escapeHtmlClient(name)} <span>TURNOS</span>`;
+
+  const tag = document.getElementById("public-hero-tag");
+  if(tag) tag.textContent = `— ${name.toUpperCase()} · RESERVAS ONLINE —`;
+
+  const shopName = document.getElementById("public-shop-name");
+  if(shopName) shopName.textContent = name;
+
+  const shopLogo = document.getElementById("public-shop-logo");
+  if(shopLogo) shopLogo.textContent = firstLetter;
+
+  renderDynamicServices();
+  renderDynamicBranches();
+  updateProDisplay();
+  updateSummaryUI();
+}
+
+function escapeHtmlClient(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function renderDynamicServices() {
+  const container = document.getElementById("dynamic-services-list");
+  if(!container) return;
+  if(!serviceCatalog.length) {
+    container.innerHTML = '<div class="service-item"><div class="service-info"><h3>Sin servicios cargados</h3><p>La peluquería todavía no configuró sus servicios.</p></div></div>';
+    return;
+  }
+  container.innerHTML = serviceCatalog.map(s => `
+    <div class="service-item">
+      <div class="service-info">
+        <h3>${escapeHtmlClient(s.name)}</h3>
+        <p>⏱ ${Number(s.duration)} min · ${escapeHtmlClient(s.description || "")}</p>
+      </div>
+      <div class="service-price-btn">
+        <div class="service-price">$ ${Number(s.price).toLocaleString("es-AR")}</div>
+        <button class="btn-add" onclick='toggleService(${JSON.stringify(s.name)}, ${Number(s.price)}, ${Number(s.duration)}, this)'>+</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderDynamicBranches() {
+  const select = document.getElementById("branch-select");
+  if(select) {
+    select.innerHTML = Object.entries(branchNames).map(([id,name]) => `<option value="${id}">${escapeHtmlClient(name)}</option>`).join("");
+    if(selectedBranch && branchNames[selectedBranch]) select.value = selectedBranch;
+  }
+
+  const locations = document.getElementById("dynamic-locations-list");
+  if(locations) {
+    locations.innerHTML = Object.entries(branchNames).map(([id,name]) => `
+      <div style="background:#181818;padding:16px;border-radius:12px;border:1px solid var(--border)">
+        <h4 style="font-size:16px;font-weight:700">${escapeHtmlClient(name)}</h4>
+        <p style="font-size:13px;color:var(--muted);margin:4px 0 12px">${escapeHtmlClient(branchAddresses[id] || "")}</p>
+      </div>
+    `).join("");
+  }
+
+  const label = document.getElementById("summary-branch-label");
+  if(label) label.textContent = branchNames[selectedBranch] || "";
+}
+
+let bookingsRef = null;
+function startBookingsListener() {
+  if(bookingsRef) bookingsRef.off();
+  bookingsRef = db.ref(`negocios/${ACTIVE_BUSINESS_ID}/turnos`);
+  bookingsRef.on("value", snapshot => {
+    const data = snapshot.val();
+    existingBookings = [];
+    if(data) Object.keys(data).forEach(k => existingBookings.push({...data[k], firebaseKey:k}));
+    if(currentStep === 4) renderTimeSlots();
+  });
+}
 
 let currentStep = 1;
 let selectedServices = [];
@@ -1069,30 +1008,16 @@ let existingBookings = [];
 let pendingWhatsAppUrl = "";
 let redirectTimer = null;
 
-// ESCUCHAR TURNO EN TIEMPO REAL
-db.ref("turnos_demo").on("value", (snapshot) => {
-  const data = snapshot.val();
-  existingBookings = [];
-  if(data) {
-    Object.keys(data).forEach(k => existingBookings.push({...data[k], firebaseKey:k}));
-  }
-  if(currentStep === 4) renderTimeSlots();
-  if(receptionAuthenticated) renderReceptionAgenda();
-});
-
-// AUTO-ACTUALIZAR TIEMPO REAL CADA MINUTO (Para bloquear horarios que pasan en vivo)
-setInterval(() => {
-  if(currentStep === 4) renderTimeSlots();
-  if(receptionAuthenticated) renderReceptionAgenda();
-}, 30000);
+// La escucha de turnos se inicia luego de cargar el negocio.
+setInterval(() => { if(currentStep === 4) renderTimeSlots(); }, 30000);
 
 function resetFormState() {
   if(redirectTimer) clearInterval(redirectTimer);
   redirectTimer = null;
   pendingWhatsAppUrl = "";
   selectedServices = [];
-  selectedBranch = "sucursal1";
-  selectedPro = barbersByBranch.sucursal1[0];
+  selectedBranch = Object.keys(branchNames)[0] || "";
+  selectedPro = (barbersByBranch[selectedBranch] || [])[0] || {name:"Sin preferencia de profesional",sub:"",avatar:"⚡"};
   selectedDateStr = "";
   selectedDateLabel = "";
   selectedTimeSlot = "";
@@ -1103,7 +1028,7 @@ function resetFormState() {
   });
 
   const branchSel = document.getElementById('branch-select');
-  if(branchSel) branchSel.value = "sucursal1";
+  if(branchSel && selectedBranch) branchSel.value = selectedBranch;
 
   const clientName = document.getElementById('client-name');
   const clientPhone = document.getElementById('client-phone');
@@ -1134,18 +1059,6 @@ function goToStep(stepNum) {
   currentStep = stepNum;
 
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-
-  if(stepNum === 'reception') {
-    document.getElementById('reception-page').classList.add('active');
-    document.getElementById('wizard-bar').style.display = 'none';
-    document.getElementById('wizard-container').style.display = 'none';
-    if(receptionAuthenticated) {
-      showReceptionDashboard();
-    } else {
-      showReceptionLogin();
-    }
-    return;
-  }
 
   if(stepNum === 1) {
     document.getElementById('step-1').classList.add('active');
@@ -1200,7 +1113,7 @@ function onBranchChange() {
   selectedBranch = document.getElementById('branch-select').value;
   selectedPro = barbersByBranch[selectedBranch][0];
   
-  const branchLabel = selectedBranch === "sucursal1" ? "Sucursal Centro" : "Sucursal Norte";
+  const branchLabel = branchNames[selectedBranch] || "Sucursal";
   document.getElementById('summary-branch-label').textContent = branchLabel;
 
   updateProDisplay();
@@ -1459,249 +1372,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ==================== RECEPCIÓN / PANEL PRIVADO ====================
-const RECEPTION_PASSWORD = "admin123";
-let receptionAuthenticated = false;
-
-function openReception() {
-  goToStep('reception');
-}
-
-function showReceptionLogin() {
-  document.getElementById('reception-login').style.display = 'block';
-  document.getElementById('reception-dashboard').style.display = 'none';
-  const input = document.getElementById('reception-password');
-  const error = document.getElementById('reception-login-error');
-  if(input) input.value = "";
-  if(error) error.style.display = 'none';
-  setTimeout(() => input && input.focus(), 50);
-}
-
-function showReceptionDashboard() {
-  document.getElementById('reception-login').style.display = 'none';
-  document.getElementById('reception-dashboard').style.display = 'block';
-  populateAdminProfessionals();
-  const dateInput = document.getElementById('admin-date');
-  if(dateInput && !dateInput.value) dateInput.value = todayDateString();
-  renderReceptionAgenda();
-}
-
-function receptionLogin() {
-  const password = document.getElementById('reception-password').value;
-  const error = document.getElementById('reception-login-error');
-
-  if(password === RECEPTION_PASSWORD) {
-    receptionAuthenticated = true;
-    showReceptionDashboard();
-  } else {
-    error.style.display = 'block';
-    document.getElementById('reception-password').focus();
-  }
-}
-
-function receptionLogout() {
-  receptionAuthenticated = false;
-  goToStep(1);
-}
-
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' && document.activeElement?.id === 'reception-password') {
-    receptionLogin();
-  }
-});
-
-function todayDateString() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-
-function populateAdminProfessionals() {
-  const branch = document.getElementById('admin-branch').value;
-  const select = document.getElementById('admin-pro');
-  const current = select.value;
-  select.innerHTML = '<option value="ALL">Todos los profesionales</option>';
-
-  barbersByBranch[branch].forEach(pro => {
-    if(pro.name === "Sin preferencia de profesional") return;
-    const option = document.createElement('option');
-    option.value = pro.name;
-    option.textContent = pro.name;
-    select.appendChild(option);
-  });
-
-  if([...select.options].some(o => o.value === current)) select.value = current;
-}
-
-document.getElementById('admin-branch')?.addEventListener('change', () => {
-  document.getElementById('admin-pro').value = 'ALL';
-  populateAdminProfessionals();
-  renderReceptionAgenda();
-});
-
-function formatAdminDate(dateStr) {
-  const [y,m,d] = dateStr.split('-').map(Number);
-  const date = new Date(y,m-1,d);
-  return date.toLocaleDateString('es-AR', {
-    weekday:'long', day:'2-digit', month:'long', year:'numeric'
-  }).replace(/^./, c => c.toUpperCase());
-}
-
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
-  }[c]));
-}
-
-function getAdminBookings(branch, dateStr, proFilter) {
-  return existingBookings.filter(b =>
-    b.branch === branch &&
-    b.dateStr === dateStr &&
-    (!proFilter || proFilter === 'ALL' || b.barber === proFilter) &&
-    b.status !== 'cancelled'
-  );
-}
-
-// RECEPCIÓN EN TIEMPO REAL CON CONTROL DE HORARIOS PASADOS
-function renderReceptionAgenda() {
-  if(!receptionAuthenticated) return;
-
-  const branch = document.getElementById('admin-branch').value;
-  const proFilter = document.getElementById('admin-pro').value;
-  const dateStr = document.getElementById('admin-date').value || todayDateString();
-  const pros = barbersByBranch[branch].filter(p => p.name !== "Sin preferencia de profesional");
-  const visiblePros = proFilter === 'ALL' ? pros : pros.filter(p => p.name === proFilter);
-  const bookings = getAdminBookings(branch, dateStr, proFilter);
-
-  // Calcular si la fecha seleccionada es hoy para validar la hora actual
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const todayStr = `${year}-${month}-${day}`;
-  const isToday = (dateStr === todayStr);
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  let total = 0;
-  let reserved = 0;
-  let free = 0;
-
-  const rows = [];
-  visiblePros.forEach(pro => {
-    workTimes.forEach(time => {
-      total++;
-      const [h, m] = time.split(':').map(Number);
-      const slotMinutes = h * 60 + m;
-      const isPast = isToday && (slotMinutes <= currentMinutes);
-
-      const booking = bookings.find(b => b.barber === pro.name && b.time === time);
-      if(booking) {
-        reserved++;
-        rows.push({ time, pro:pro.name, booking, reserved:true, expired:false });
-      } else {
-        if(!isPast) free++;
-        rows.push({ time, pro:pro.name, booking:null, reserved:false, expired:isPast });
-      }
-    });
-  });
-
-  document.getElementById('admin-stat-reserved').textContent = reserved;
-  document.getElementById('admin-stat-free').textContent = free;
-  document.getElementById('admin-stat-pros').textContent = visiblePros.length;
-  document.getElementById('admin-stat-total').textContent = total;
-  document.getElementById('admin-agenda-title').textContent =
-    `${branch === 'sucursal1' ? 'Sucursal Centro' : 'Sucursal Norte'} · ${formatAdminDate(dateStr)}`;
-
-  const container = document.getElementById('admin-agenda-container');
-
-  if(!visiblePros.length) {
-    container.innerHTML = '<div class="admin-empty">No hay profesionales para este filtro.</div>';
-    return;
-  }
-
-  let table = `
-    <div class="admin-table-scroll">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Hora</th>
-            <th>Profesional</th>
-            <th>Estado</th>
-            <th>Cliente</th>
-            <th>Celular</th>
-            <th>Servicio</th>
-            <th>Total</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
-
-  rows.forEach(row => {
-    if(row.reserved) {
-      const b = row.booking;
-      table += `
-        <tr>
-          <td><strong>${escapeHtml(row.time)} hs</strong></td>
-          <td><div class="admin-pro">${escapeHtml(row.pro)}</div></td>
-          <td><span class="status-badge reserved">● Reservado</span></td>
-          <td><div class="admin-client">${escapeHtml(b.patient || 'Sin nombre')}</div></td>
-          <td>${escapeHtml(b.phone || '—')}</td>
-          <td>${escapeHtml(b.service || '—')}</td>
-          <td><strong>$ ${Number(b.totalPrice || 0).toLocaleString('es-AR')}</strong></td>
-          <td><button class="admin-cancel" onclick="cancelReceptionBooking('${escapeHtml(b.firebaseKey || '')}')">Cancelar</button></td>
-        </tr>
-      `;
-    } else if(row.expired) {
-      table += `
-        <tr style="opacity:0.4;">
-          <td><strong>${escapeHtml(row.time)} hs</strong></td>
-          <td><div class="admin-pro">${escapeHtml(row.pro)}</div></td>
-          <td><span class="status-badge expired">✕ Expirado</span></td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
-          <td><span style="color:var(--muted-2);font-size:10px">Pasado</span></td>
-        </tr>
-      `;
-    } else {
-      table += `
-        <tr>
-          <td><strong>${escapeHtml(row.time)} hs</strong></td>
-          <td><div class="admin-pro">${escapeHtml(row.pro)}</div></td>
-          <td><span class="status-badge available">● Disponible</span></td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
-          <td><span style="color:var(--muted-2);font-size:10px">Libre</span></td>
-        </tr>
-      `;
-    }
-  });
-
-  table += '</tbody></table></div>';
-  container.innerHTML = table;
-}
-
-function cancelReceptionBooking(key) {
-  if(!receptionAuthenticated || !key) return;
-
-  const booking = existingBookings.find(b => b.firebaseKey === key);
-  if(!booking) {
-    alert("No se encontró el turno.");
-    return;
-  }
-
-  const client = booking.patient || "este cliente";
-  if(!confirm(`¿Cancelar el turno de ${client} a las ${booking.time} hs?`)) return;
-
-  db.ref(`turnos_demo/${key}`).remove();
-}
-
 // CONFIRMAR RESERVA Y MOSTRAR CONFIRMACIÓN
 function submitFinalBooking() {
   const name = document.getElementById('client-name').value.trim();
@@ -1763,7 +1433,7 @@ function submitFinalBooking() {
     }
   }
 
-  const branchName = selectedBranch === "sucursal1" ? "Sucursal Centro" : "Sucursal Norte";
+  const branchName = branchNames[selectedBranch] || "Sucursal";
   const serviceNames = selectedServices.map(s => s.name).join(" + ");
   const totalPrice = selectedServices.reduce((a,b) => a + b.price, 0);
 
@@ -1778,10 +1448,12 @@ function submitFinalBooking() {
     time: selectedTimeSlot,
     patient: name,
     phone: phone,
-    status: 'reserved'
+    status: 'reserved',
+    businessId: ACTIVE_BUSINESS_ID,
+    source: 'public_link'
   };
 
-  db.ref("turnos_demo").push().set(bookingData, (err) => {
+  db.ref(`negocios/${ACTIVE_BUSINESS_ID}/turnos`).push().set(bookingData, (err) => {
     submitBtn.disabled = false;
     submitBtn.innerHTML = 'Confirmar reserva <span style="margin-left:7px">→</span>';
 
@@ -1799,7 +1471,7 @@ function submitFinalBooking() {
     document.getElementById('conf-service-name').textContent = serviceNames;
 
     const msg = encodeURIComponent(
-      `📅 *CONFIRMACIÓN DE TURNO - BARBER DEMO*\n\n` +
+      `📅 *CONFIRMACIÓN DE TURNO - ${BUSINESS_NAME}*\n\n` +
       `👤 *Cliente:* ${name}\n` +
       `📱 *Teléfono:* ${phone}\n` +
       `📍 *Sucursal:* ${branchName}\n` +
@@ -1841,6 +1513,8 @@ function redirectToWhatsAppNow() {
   resetFormState();
   goToStep(1);
 }
+
+loadBusinessProfile();
 </script>
 </body>
 </html>
