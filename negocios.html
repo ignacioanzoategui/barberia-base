@@ -277,7 +277,7 @@ function attachBookingListener(){
 }
 
 function renderDash(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="head"><div><div class="k">Panel del negocio</div><div class="title">${esc(B.name)}</div><p class="muted">${esc(B.email||"")}</p></div><div class="actions"><button class="btn" onclick="location.href='index.html?negocio=${B.slug}'">Ver página de clientes</button><button class="btn" onclick="auth.signOut()">Cerrar sesión</button></div></div><div class="stats"><div class="stat a"><small>Turnos activos</small><strong id="s1">0</strong></div><div class="stat"><small>Turnos hoy</small><strong id="s2">0</strong></div><div class="stat"><small>Clientes</small><strong id="s3">0</strong></div><div class="stat"><small>Ingresos</small><strong id="s4">$ 0</strong></div></div><div class="tabs"><button class="btn tab active" onclick="show('agenda',this)">Agenda</button><button class="btn tab" onclick="show('stats',this)">Estadísticas</button><button class="btn tab" onclick="show('hours',this)">Horarios</button><button class="btn tab" onclick="show('days',this)">Días no laborables</button><button class="btn tab" onclick="show('pros',this)">Profesionales</button><button class="btn tab" onclick="show('branches',this)">Sucursales</button><button class="btn tab" onclick="show('services',this)">Servicios</button><button class="btn tab" onclick="show('link',this)">Mi link</button></div>
-<div id="agenda" class="panel active card"><div class="k">Recepción</div><div class="title" style="font-size:20px">Cuadro de turnos</div><p class="muted">Vas a ver espacios disponibles, reservados y ausencias.</p><div class="controls"><div class="field"><label>Sucursal</label><select id="ab" onchange="prosFilter();agendaGrid()">${branchOptions()}</select></div><div class="field"><label>Profesional</label><select id="ap" onchange="agendaGrid()"></select></div><div>
+<div id="agenda" class="panel active card"><div class="k">Recepción</div><div class="title" style="font-size:20px">Cuadro de turnos</div><p class="muted">Vas a ver períodos disponibles y turnos con hora de inicio y fin reales.</p><div class="controls"><div class="field"><label>Sucursal</label><select id="ab" onchange="prosFilter();agendaGrid()">${branchOptions()}</select></div><div class="field"><label>Profesional</label><select id="ap" onchange="agendaGrid()"></select></div><div>
   <label style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--m);font-weight:900;margin-bottom:7px">Fecha</label>
   <div class="date-control">
     <button class="btn date-nav" onclick="moveAgendaDate(-1)" title="Día anterior">‹</button>
@@ -348,19 +348,117 @@ function allowed(d,pid=null){
   return a.filter(t=>M(t)>=x&&M(t)<=y);
 }
 function prosFilter(){const branch=document.getElementById("ab").value;document.getElementById("ap").innerHTML='<option value="ALL">Todos</option>'+Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).map(([id,p])=>`<option value="${id}">${esc(p.name)}</option>`).join("")}
-function agendaGrid(){
-  const branch=document.getElementById("ab").value,pf=document.getElementById("ap").value,d=document.getElementById("ad").value;if(!d)return;
-  if(B.closedDates?.[d]?.closed){document.getElementById("ag").innerHTML=`<div class="row"><div><b>Local cerrado</b><small>${esc(B.closedDates[d].reason||"Día no laborable")}</small></div><span class="badge br">Cerrado</span></div>`;return}
-  const ps=Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).filter(([id])=>pf==="ALL"||id===pf),all=Object.entries(BOOK).map(([key,x])=>({...x,key}));let rows="";
-  ps.forEach(([pid,p])=>allowed(d,pid).forEach(t=>{
-    const absent=B.professionalAbsences?.[pid]?.[d]?.absent,past=isPastAgendaSlot(d,t);
-    const b=all.find(x=>x.status!=="cancelled"&&String(x.dateStr||"")===String(d)&&String(x.time||"")===String(t)&&(String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(p.name)));
-    if(b)rows+=`<tr><td><b>${t} hs</b></td><td>${esc(p.name)}</td><td><span class="badge ba">Reservado</span></td><td><b>${esc(b.patient||"")}</b></td><td>${esc(b.phone||"")}</td><td>${esc(b.service||"")}</td><td>$ ${Number(b.totalPrice||0).toLocaleString("es-AR")}</td><td>${esc(b.branchName||B.branches?.[branch]?.name||"")}</td><td><button class="btn danger" onclick="cancelT('${b.key}')">Cancelar</button></td></tr>`;
-    else if(absent)rows+=`<tr><td>${t} hs</td><td>${esc(p.name)}</td><td><span class="badge bm">Ausente</span></td><td colspan="5">${esc(B.professionalAbsences[pid][d].reason||"No trabaja")}</td><td>—</td></tr>`;
-    else if(past)rows+=`<tr style="opacity:.45"><td>${t} hs</td><td>${esc(p.name)}</td><td><span class="badge bm">Pasado</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>—</td></tr>`;
-    else rows+=`<tr><td><b>${t} hs</b></td><td>${esc(p.name)}</td><td><span class="badge bg">Disponible</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>Libre</td></tr>`;
+
+function agendaToMin(t){const[h,m]=String(t).split(":").map(Number);return h*60+m}
+function agendaFromMin(n){const h=Math.floor(n/60),m=n%60;return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`}
+function agendaNowMin(){const n=new Date();return n.getHours()*60+n.getMinutes()}
+function agendaWorkRange(dateStr,pid){
+  const dow=new Date(dateStr+"T12:00:00").getDay(),general=B.weeklyHours?.[dow],specific=B.professionalSchedules?.[pid]?.[dow];
+  if(general?.closed||specific?.closed)return null;
+  return {start:specific?.start||general?.start||"00:00",end:specific?.end||general?.end||"23:59"};
+}
+function agendaBreaks(pid,dateStr){
+  const dow=new Date(dateStr+"T12:00:00").getDay();
+  const norm=x=>Array.isArray(x)?x:Object.values(x||{});
+  return [
+    ...norm(B.professionalBreaks?.[pid]?.weekly?.[dow]),
+    ...norm(B.professionalBreaks?.[pid]?.dates?.[dateStr])
+  ].filter(x=>x?.start&&x?.end).map(x=>({
+    start:agendaToMin(x.start),end:agendaToMin(x.end),type:"break",reason:x.reason||"Descanso"
   }));
-  document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Hora</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay profesionales para este filtro.</td></tr>'}</tbody></table></div>`;
+}
+function agendaBookings(pid,p,dateStr){
+  return Object.entries(BOOK).map(([key,x])=>({...x,key})).filter(x=>{
+    if(x.status==="cancelled"||String(x.dateStr||"")!==String(dateStr))return false;
+    return String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(p.name);
+  }).map(x=>({
+    start:agendaToMin(x.time||"00:00"),
+    end:agendaToMin(x.time||"00:00")+Number(x.duration||40),
+    type:"booking",
+    booking:x
+  })).sort((a,b)=>a.start-b.start);
+}
+function agendaTimeline(pid,p,dateStr){
+  const range=agendaWorkRange(dateStr,pid);
+  if(!range)return[];
+  if(B.professionalAbsences?.[pid]?.[dateStr]?.absent){
+    return [{type:"absence",start:agendaToMin(range.start),end:agendaToMin(range.end),reason:B.professionalAbsences[pid][dateStr].reason||"No trabaja"}];
+  }
+
+  const workStart=agendaToMin(range.start),workEnd=agendaToMin(range.end);
+  const today=localDateString();
+  if(dateStr<today)return[];
+
+  let cursor=workStart;
+  if(dateStr===today)cursor=Math.max(cursor,agendaNowMin());
+
+  const occupied=[...agendaBookings(pid,p,dateStr),...agendaBreaks(pid,dateStr)]
+    .filter(x=>x.end>cursor && x.start<workEnd)
+    .sort((a,b)=>a.start-b.start);
+
+  const timeline=[];
+
+  occupied.forEach(item=>{
+    const start=Math.max(item.start,workStart);
+    const end=Math.min(item.end,workEnd);
+    if(end<=cursor)return;
+
+    if(start>cursor){
+      timeline.push({type:"free",start:cursor,end:start});
+    }
+
+    if(item.type==="booking"){
+      // Si el turno todavía está en curso, se muestra completo con su horario real.
+      timeline.push({...item,start:item.start,end:item.end});
+    }else{
+      timeline.push({...item,start,end});
+    }
+
+    cursor=Math.max(cursor,end);
+  });
+
+  if(cursor<workEnd)timeline.push({type:"free",start:cursor,end:workEnd});
+  return timeline;
+}
+
+function agendaGrid(){
+  const branch=document.getElementById("ab").value,pf=document.getElementById("ap").value,d=document.getElementById("ad").value;
+  if(!d)return;
+
+  if(d<localDateString()){
+    document.getElementById("ag").innerHTML='<div class="row"><div><b>Día finalizado</b><small>Los turnos pasados no se muestran en la agenda activa.</small></div><span class="badge bm">Finalizado</span></div>';
+    return;
+  }
+
+  if(B.closedDates?.[d]?.closed){
+    document.getElementById("ag").innerHTML=`<div class="row"><div><b>Local cerrado</b><small>${esc(B.closedDates[d].reason||"Día no laborable")}</small></div><span class="badge br">Cerrado</span></div>`;
+    return;
+  }
+
+  const ps=Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).filter(([id])=>pf==="ALL"||id===pf);
+  let rows="";
+
+  ps.forEach(([pid,p])=>{
+    const items=agendaTimeline(pid,p,d);
+
+    items.forEach(item=>{
+      const startLabel=(d===localDateString()&&item.type==="free"&&item.start===agendaNowMin())?"Ahora":agendaFromMin(item.start);
+      const endLabel=agendaFromMin(item.end);
+
+      if(item.type==="booking"){
+        const b=item.booking;
+        rows+=`<tr><td><b>${agendaFromMin(item.start)}–${agendaFromMin(item.end)}</b></td><td>${esc(p.name)}</td><td><span class="badge ba">Reservado</span></td><td><b>${esc(b.patient||"")}</b></td><td>${esc(b.phone||"")}</td><td>${esc(b.service||"")}</td><td>$ ${Number(b.totalPrice||0).toLocaleString("es-AR")}</td><td>${esc(b.branchName||B.branches?.[branch]?.name||"")}</td><td><button class="btn danger" onclick="cancelT('${b.key}')">Cancelar</button></td></tr>`;
+      }else if(item.type==="break"){
+        rows+=`<tr><td><b>${agendaFromMin(item.start)}–${agendaFromMin(item.end)}</b></td><td>${esc(p.name)}</td><td><span class="badge bm">Descanso</span></td><td colspan="5">${esc(item.reason||"Descanso")}</td><td>—</td></tr>`;
+      }else if(item.type==="absence"){
+        rows+=`<tr><td><b>${agendaFromMin(item.start)}–${agendaFromMin(item.end)}</b></td><td>${esc(p.name)}</td><td><span class="badge bm">Ausente</span></td><td colspan="5">${esc(item.reason||"No trabaja")}</td><td>—</td></tr>`;
+      }else if(item.type==="free" && item.end>item.start){
+        rows+=`<tr><td><b>${startLabel}–${endLabel}</b></td><td>${esc(p.name)}</td><td><span class="badge bg">Disponible</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>Libre</td></tr>`;
+      }
+    });
+  });
+
+  document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Horario</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay actividad pendiente para este día.</td></tr>'}</tbody></table></div>`;
 }
 async function cancelT(k){if(confirm("¿Cancelar turno?")){await db.ref(`negocios/${B.id}/turnos/${k}`).update({status:"cancelled",cancelledAt:Date.now()});await dashboard()}}
 function lists(){document.getElementById("cl").innerHTML=Object.entries(B.closedDates||{}).filter(([,x])=>x.closed).map(([d,x])=>`<div class="row"><div><b>${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeClosed('${d}')">Quitar</button></div>`).join("");let a=[];Object.entries(B.professionalAbsences||{}).forEach(([p,ds])=>Object.entries(ds||{}).forEach(([d,x])=>x.absent&&a.push([p,d,x])));document.getElementById("xl").innerHTML=a.map(([p,d,x])=>`<div class="row"><div><b>${esc(B.professionals?.[p]?.name||"")} · ${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeAbs('${p}','${d}')">Quitar</button></div>`).join("")}
@@ -488,6 +586,6 @@ document.addEventListener("keydown",e=>{
   if(document.activeElement?.id==="lw") log();
   if(document.activeElement?.id==="rw") reg();
 });
-setInterval(()=>{if(document.getElementById("ag"))agendaGrid()},30000);
+setInterval(()=>{if(document.getElementById("ag"))agendaGrid()},60000);
 auth.onAuthStateChanged(async u=>{if(u)await dashboard();else loginUI()});
 </script></body></html>
