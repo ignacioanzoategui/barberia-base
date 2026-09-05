@@ -120,7 +120,7 @@ async function reg(){
       createdAt:Date.now(),
       branches:{principal:{name:"Sucursal principal",address:"",active:true}},
       professionals:{},services:{},workTimes:defs,
-      weeklyHours:weekly,closedDates:{},professionalAbsences:{},professionalSchedules:{}
+      weeklyHours:weekly,closedDates:{},professionalAbsences:{},professionalSchedules:{},professionalBreaks:{}
     };
 
     await db.ref(`negocios/${uid}`).set(obj);
@@ -182,7 +182,7 @@ async function log(){
 }
 
 async function getBusiness(){const u=auth.currentUser;if(!u)return null;const s=await db.ref(`negocios/${u.uid}`).once("value");return s.exists()?{...s.val(),id:u.uid}:null}
-function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{},professionalSchedules:o.professionalSchedules||{}}}
+function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{},professionalSchedules:o.professionalSchedules||{},professionalBreaks:o.professionalBreaks||{}}}
 async function syncPublic(uid,obj){await db.ref(`publicProfiles/${obj.slug}`).set(publicPayload(uid,obj))}
 async function refreshAndSync(){B=await getBusiness();if(B){try{await syncPublic(B.id,B)}catch(e){console.warn("sync public:",e)}}}
 async function dashboard(){
@@ -254,7 +254,7 @@ async function repairProfile(){
       createdAt:Date.now(),
       branches:{principal:{name:"Sucursal principal",address:"",active:true}},
       professionals:{},services:{},workTimes:defs,
-      weeklyHours:weekly,closedDates:{},professionalAbsences:{},professionalSchedules:{}
+      weeklyHours:weekly,closedDates:{},professionalAbsences:{},professionalSchedules:{},professionalBreaks:{}
     };
     await db.ref(`negocios/${u.uid}`).set(obj);
     try{await syncPublic(u.uid,obj)}catch(e){console.warn(e)}
@@ -392,6 +392,21 @@ function prosPanel(){
       <button class="btn gold" onclick="saveProSchedule()">Guardar horario del profesional</button>
       <button class="btn" onclick="clearProSchedule()">Usar horario general</button>
     </div>
+    <div class="pro-schedule-box">
+      <div class="k">Descansos del profesional</div>
+      <div class="title" style="font-size:18px">Pausas semanales</div>
+      <p class="muted">Ejemplo: almuerzo de 13:00 a 14:00 o descanso de 17:00 a 17:20.</p>
+      <div class="grid2">
+        <div class="field"><label>Día</label><select id="break-day">
+          <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option>
+        </select></div>
+        <div class="field"><label>Motivo</label><input id="break-reason" placeholder="Almuerzo, descanso, etc."></div>
+        <div class="field"><label>Desde</label><input id="break-start" type="time"></div>
+        <div class="field"><label>Hasta</label><input id="break-end" type="time"></div>
+      </div>
+      <button class="btn gold" onclick="addWeeklyBreak()">Agregar descanso</button>
+      <div id="break-list"></div>
+    </div>
   </div>`;
 }
 function renderProSchedule(){
@@ -405,6 +420,7 @@ function renderProSchedule(){
     const c=cfg[i]||{closed:general.closed,start:general.start||"10:00",end:general.end||"19:20"};
     return `<div class="day"><b>${n}</b><label><input id="pc${i}" type="checkbox" ${c.closed?"checked":""}> No trabaja</label><input id="pss${i}" type="time" value="${c.start||"10:00"}"><input id="pee${i}" type="time" value="${c.end||"19:20"}"></div>`;
   }).join("");
+  renderBreaks();
 }
 async function saveProSchedule(){
   const pid=document.getElementById("schedule-pro")?.value;
@@ -421,9 +437,37 @@ async function clearProSchedule(){
   await db.ref(`negocios/${B.id}/professionalSchedules/${pid}`).remove();
   await refreshAndSync();await dashboard();
 }
+function renderBreaks(){
+  const pid=document.getElementById("schedule-pro")?.value,box=document.getElementById("break-list");
+  if(!pid||!box)return;
+  const weekly=B.professionalBreaks?.[pid]?.weekly||{};
+  let rows=[];
+  Object.entries(weekly).forEach(([day,items])=>{
+    Object.entries(items||{}).forEach(([key,x])=>{
+      rows.push(`<div class="row"><div><b>${days[Number(day)]} · ${x.start}–${x.end}</b><small>${esc(x.reason||"Descanso")}</small></div><button class="btn danger" onclick="deleteWeeklyBreak('${pid}','${day}','${key}')">Eliminar</button></div>`);
+    });
+  });
+  box.innerHTML=rows.join("")||'<p class="muted">No hay descansos configurados.</p>';
+}
+async function addWeeklyBreak(){
+  const pid=document.getElementById("schedule-pro")?.value;
+  const day=document.getElementById("break-day")?.value;
+  const start=document.getElementById("break-start")?.value;
+  const end=document.getElementById("break-end")?.value;
+  const reason=document.getElementById("break-reason")?.value.trim();
+  if(!pid||!day||!start||!end)return alert("Completá día, desde y hasta.");
+  if(toMinutes(start)>=toMinutes(end))return alert("La hora de fin debe ser posterior a la de inicio.");
+  await db.ref(`negocios/${B.id}/professionalBreaks/${pid}/weekly/${day}`).push({start,end,reason});
+  await refreshAndSync();await dashboard();
+}
+async function deleteWeeklyBreak(pid,day,key){
+  await db.ref(`negocios/${B.id}/professionalBreaks/${pid}/weekly/${day}/${key}`).remove();
+  await refreshAndSync();await dashboard();
+}
+function toMinutes(t){const[h,m]=String(t).split(":").map(Number);return h*60+m}
 async function addPro(){const n=document.getElementById("pn").value.trim(),b=document.getElementById("pb").value;if(!n||!b)return;await db.ref(`negocios/${B.id}/professionals`).push({name:n,specialty:document.getElementById("ps").value.trim(),branchId:b,active:true});await refreshAndSync();await dashboard()}
 async function togglePro(id,val){await db.ref(`negocios/${B.id}/professionals/${id}`).update({active:val});await refreshAndSync();await dashboard()}
-async function deletePro(id){const p=B.professionals?.[id];if(!p)return;if(!confirm(`¿Eliminar a "${p.name}"?`))return;await db.ref(`negocios/${B.id}/professionals/${id}`).remove();await db.ref(`negocios/${B.id}/professionalSchedules/${id}`).remove();await db.ref(`negocios/${B.id}/professionalAbsences/${id}`).remove();await refreshAndSync();await dashboard()}
+async function deletePro(id){const p=B.professionals?.[id];if(!p)return;if(!confirm(`¿Eliminar a "${p.name}"?`))return;await db.ref(`negocios/${B.id}/professionals/${id}`).remove();await db.ref(`negocios/${B.id}/professionalSchedules/${id}`).remove();await db.ref(`negocios/${B.id}/professionalAbsences/${id}`).remove();await db.ref(`negocios/${B.id}/professionalBreaks/${id}`).remove();await refreshAndSync();await dashboard()}
 async function replacePro(id){const p=B.professionals[id],n=prompt("Nombre del reemplazo:",p.name);if(!n)return;const s=prompt("Especialidad:",p.specialty||"")||"";await db.ref(`negocios/${B.id}/professionals/${id}`).update({name:n,specialty:s,active:true,replacedAt:Date.now()});await refreshAndSync();await dashboard()}
 function branchPanel(){
   const r=Object.entries(B.branches||{}).map(([id,b])=>`<div class="row"><div><b>${esc(b.name)}</b><small>${esc(b.address||"Sin dirección")}</small></div><div class="actions"><button class="btn" onclick="editBranch('${id}')">Editar</button><button class="btn danger" onclick="deleteBranch('${id}')">Eliminar</button></div></div>`).join("");
