@@ -38,12 +38,25 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 let P=null,UID=null,SVC=null,BR=null,PRO="ANY",DATE="",TIME="",BOOKINGS={},bookingRef=null;
-const defaults=["10:00","10:40","11:20","12:00","12:40","13:20","14:00","14:40","15:20","16:00","16:40","17:20","18:00","18:40","19:20"];
+const defaultBaseInterval=10;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 
 function localDateString(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
 function minutesNow(){const d=new Date();return d.getHours()*60+d.getMinutes()}
 function toMin(t){const[h,m]=String(t).split(":").map(Number);return h*60+m}
+function fromMin(total){const h=Math.floor(total/60),m=total%60;return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`}
+function overlaps(aStart,aDur,bStart,bDur){const a1=toMin(aStart),a2=a1+Number(aDur||0),b1=toMin(bStart),b2=b1+Number(bDur||0);return a1<b2&&b1<a2}
+function selectedDuration(){return Number(P.services?.[SVC]?.duration||40)}
+function getBreaksFor(pid,dateStr){
+  const dow=new Date(dateStr+"T12:00:00").getDay();
+  const weekly=P.professionalBreaks?.[pid]?.weekly?.[dow]||[];
+  const specific=P.professionalBreaks?.[pid]?.dates?.[dateStr]||[];
+  const normalize=x=>Array.isArray(x)?x:Object.values(x||{});
+  return [...normalize(weekly),...normalize(specific)].filter(x=>x&&x.start&&x.end);
+}
+function conflictsWithBreak(pid,dateStr,start,duration){
+  return getBreaksFor(pid,dateStr).some(br=>overlaps(start,duration,br.start,toMin(br.end)-toMin(br.start)));
+}
 function isPastSlot(dateStr,time){const today=localDateString();if(dateStr<today)return true;if(dateStr>today)return false;return toMin(time)<=minutesNow()}
 function closeModal(){document.getElementById("modal").classList.remove("open")}
 function resetHeader(){document.getElementById("topbrand").innerHTML='TURNOS <span>PRO</span>';document.getElementById("topactions").innerHTML="";document.getElementById("topactions").className="nav-placeholder"}
@@ -72,19 +85,30 @@ function businessLanding(){
 }
 function startBooking(){PRO="ANY";DATE="";TIME="";renderBooking()}
 function activePros(){return Object.entries(P.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===BR)}
-function proSlots(dateStr,pid){
+function proSlots(dateStr,pid,duration=selectedDuration()){
   const dow=new Date(dateStr+"T12:00:00").getDay(),businessCfg=P.weeklyHours?.[dow],proCfg=P.professionalSchedules?.[pid]?.[dow];
   if(businessCfg?.closed||proCfg?.closed)return[];
-  let slots=P.workTimes||defaults,start=proCfg?.start||businessCfg?.start||"00:00",end=proCfg?.end||businessCfg?.end||"23:59";
-  return slots.filter(t=>toMin(t)>=toMin(start)&&toMin(t)<=toMin(end));
+  const start=proCfg?.start||businessCfg?.start||"00:00",end=proCfg?.end||businessCfg?.end||"23:59";
+  const startMin=toMin(start),endMin=toMin(end),step=Number(P.slotStepMinutes||defaultBaseInterval);
+  const slots=[];
+  for(let m=startMin;m+Number(duration||40)<=endMin;m+=step)slots.push(fromMin(m));
+  return slots;
 }
 function proAvailable(pid,dateStr,time){
   if(!pid||isPastSlot(dateStr,time))return false;
+  const duration=selectedDuration();
   if(P.closedDates?.[dateStr]?.closed)return false;
   if(P.professionalAbsences?.[pid]?.[dateStr]?.absent)return false;
-  if(!proSlots(dateStr,pid).includes(time))return false;
+  if(!proSlots(dateStr,pid,duration).includes(time))return false;
+  if(conflictsWithBreak(pid,dateStr,time,duration))return false;
+
   const name=P.professionals?.[pid]?.name||"";
-  return !Object.values(BOOKINGS).some(x=>x.status!=="cancelled"&&String(x.dateStr||"")===String(dateStr)&&String(x.time||"")===String(time)&&(String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(name)));
+  return !Object.values(BOOKINGS).some(x=>{
+    if(x.status==="cancelled"||String(x.dateStr||"")!==String(dateStr))return false;
+    const samePro=String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(name);
+    if(!samePro)return false;
+    return overlaps(time,duration,String(x.time||""),Number(x.duration||40));
+  });
 }
 function availableProsAt(dateStr,time){return activePros().filter(([pid])=>proAvailable(pid,dateStr,time))}
 function renderBooking(){
@@ -104,14 +128,24 @@ function renderTimes(){
   const box=document.getElementById("times");if(!box||!DATE)return;
   if(DATE<localDateString()){box.innerHTML='<p class="muted">Ese día ya pasó.</p>';return}
   if(P.closedDates?.[DATE]?.closed){box.innerHTML='<p class="muted">La barbería no trabaja este día.</p>';return}
-  const slots=P.workTimes||defaults;
+
+  const duration=selectedDuration();
+  let slots=[];
+  if(PRO==="ANY"){
+    const set=new Set();
+    activePros().forEach(([pid])=>proSlots(DATE,pid,duration).forEach(t=>set.add(t)));
+    slots=[...set].sort((a,b)=>toMin(a)-toMin(b));
+  }else{
+    slots=proSlots(DATE,PRO,duration);
+  }
+
   box.innerHTML=slots.map(t=>{
     const past=isPastSlot(DATE,t);
-    let free=PRO==="ANY"?availableProsAt(DATE,t).length>0:proAvailable(PRO,DATE,t);
+    const free=PRO==="ANY"?availableProsAt(DATE,t).length>0:proAvailable(PRO,DATE,t);
     if(past)return `<button class="time past" disabled>${t}</button>`;
     if(!free)return `<button class="time busy" disabled>${t}</button>`;
     return `<button class="time ${TIME===t?"sel":""}" onclick="pick('${t}',this)">${t}</button>`;
-  }).join("");
+  }).join("")||'<p class="muted">No hay horarios disponibles para la duración de este servicio.</p>';
 }
 function pick(t,e){document.querySelectorAll(".time").forEach(x=>x.classList.remove("sel"));e.classList.add("sel");TIME=t;document.getElementById("st").textContent=t+" hs"}
 function clientForm(){
@@ -128,7 +162,7 @@ async function saveBooking(){
   if(PRO==="ANY"){const available=availableProsAt(DATE,TIME);if(!available.length){closeModal();alert("Ese horario acaba de ocuparse por completo. Elegí otro.");renderTimes();return}assignedId=available[0][0]}
   else if(!proAvailable(PRO,DATE,TIME)){closeModal();alert("Ese horario acaba de ocuparse para ese profesional. Elegí otro.");renderTimes();return}
   const key=db.ref(`negocios/${UID}/turnos`).push().key,s=P.services[SVC],b=P.branches[BR],pr=P.professionals[assignedId];
-  const booking={key,patient:n,phone,dateStr:DATE,time:TIME,service:s.name,totalPrice:Number(s.price||0),branchId:BR,branchName:b.name,professionalId:assignedId,professionalName:pr.name,barber:pr.name,status:"reserved",createdAt:Date.now(),source:"public_link"};
+  const booking={key,patient:n,phone,dateStr:DATE,time:TIME,service:s.name,totalPrice:Number(s.price||0),duration:Number(s.duration||40),branchId:BR,branchName:b.name,professionalId:assignedId,professionalName:pr.name,barber:pr.name,status:"reserved",createdAt:Date.now(),source:"public_link"};
   await db.ref(`negocios/${UID}/turnos/${key}`).set(booking);BOOKINGS[key]=booking;
   const msg=encodeURIComponent(`CONFIRMACIÓN DE TURNO - ${P.name}\nCliente: ${n}\nTeléfono: ${phone}\nSucursal: ${b.name}\nProfesional: ${pr.name}\nServicio: ${s.name}\nFecha: ${DATE}\nHora: ${TIME} hs`);
   document.getElementById("mc").innerHTML=`<div style="text-align:center"><div style="font-size:48px;color:var(--a)">✓</div><h2>¡Reserva confirmada!</h2><p class="muted">Tu turno quedó con <b>${esc(pr.name)}</b>.</p><button class="btn gold" style="width:100%;margin-top:14px" onclick="window.open('https://wa.me/${esc(P.phone||"")}?text=${msg}','_blank');closeModal();businessLanding()">Enviar por WhatsApp y volver al inicio</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal();businessLanding()">Volver al inicio</button></div>`;
