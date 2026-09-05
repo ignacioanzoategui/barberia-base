@@ -85,32 +85,73 @@ function businessLanding(){
 }
 function startBooking(){PRO="ANY";DATE="";TIME="";renderBooking()}
 function activePros(){return Object.entries(P.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===BR)}
-function proSlots(dateStr,pid,duration=selectedDuration()){
-  const dow=new Date(dateStr+"T12:00:00").getDay(),businessCfg=P.weeklyHours?.[dow],proCfg=P.professionalSchedules?.[pid]?.[dow];
-  if(businessCfg?.closed||proCfg?.closed)return[];
-  const start=proCfg?.start||businessCfg?.start||"00:00",end=proCfg?.end||businessCfg?.end||"23:59";
-  const startMin=toMin(start),endMin=toMin(end),step=Number(P.slotStepMinutes||defaultBaseInterval);
-  const slots=[];
-  for(let m=startMin;m+Number(duration||40)<=endMin;m+=step)slots.push(fromMin(m));
-  return slots;
+function workRange(dateStr,pid){
+  const dow=new Date(dateStr+"T12:00:00").getDay();
+  const businessCfg=P.weeklyHours?.[dow];
+  const proCfg=P.professionalSchedules?.[pid]?.[dow];
+  if(businessCfg?.closed||proCfg?.closed)return null;
+  return {
+    start:proCfg?.start||businessCfg?.start||"00:00",
+    end:proCfg?.end||businessCfg?.end||"23:59"
+  };
+}
+function busyIntervals(pid,dateStr){
+  const name=P.professionals?.[pid]?.name||"";
+  const intervals=[];
+
+  Object.values(BOOKINGS).forEach(x=>{
+    if(x.status==="cancelled"||String(x.dateStr||"")!==String(dateStr))return;
+    const samePro=String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(name);
+    if(!samePro)return;
+    const start=toMin(x.time||"00:00"),end=start+Number(x.duration||40);
+    intervals.push({start,end,type:"booking"});
+  });
+
+  getBreaksFor(pid,dateStr).forEach(br=>{
+    intervals.push({start:toMin(br.start),end:toMin(br.end),type:"break"});
+  });
+
+  return intervals.sort((a,b)=>a.start-b.start);
+}
+function candidateSlotsForPro(dateStr,pid,duration=selectedDuration()){
+  if(!pid||P.closedDates?.[dateStr]?.closed||P.professionalAbsences?.[pid]?.[dateStr]?.absent)return[];
+  const range=workRange(dateStr,pid);
+  if(!range)return[];
+
+  const startMin=toMin(range.start),endMin=toMin(range.end);
+  const busy=busyIntervals(pid,dateStr);
+  let cursor=startMin;
+  const result=[];
+
+  // Hoy: nunca ofrecemos un inicio que ya pasó.
+  if(dateStr===localDateString()){
+    const now=minutesNow();
+    if(cursor<now){
+      // Redondeo solamente el punto de entrada actual a 5 minutos para no mostrar 14:37, por ejemplo.
+      cursor=Math.ceil(now/5)*5;
+    }
+  }
+
+  while(cursor+duration<=endMin){
+    const conflict=busy.find(x=>cursor<x.end && x.start<cursor+duration);
+    if(conflict){
+      cursor=Math.max(cursor,conflict.end);
+      continue;
+    }
+
+    result.push(fromMin(cursor));
+    // Después de un espacio libre, el próximo candidato avanza la duración REAL del servicio.
+    cursor+=duration;
+  }
+
+  return result;
 }
 function proAvailable(pid,dateStr,time){
-  if(!pid||isPastSlot(dateStr,time))return false;
-  const duration=selectedDuration();
-  if(P.closedDates?.[dateStr]?.closed)return false;
-  if(P.professionalAbsences?.[pid]?.[dateStr]?.absent)return false;
-  if(!proSlots(dateStr,pid,duration).includes(time))return false;
-  if(conflictsWithBreak(pid,dateStr,time,duration))return false;
-
-  const name=P.professionals?.[pid]?.name||"";
-  return !Object.values(BOOKINGS).some(x=>{
-    if(x.status==="cancelled"||String(x.dateStr||"")!==String(dateStr))return false;
-    const samePro=String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(name);
-    if(!samePro)return false;
-    return overlaps(time,duration,String(x.time||""),Number(x.duration||40));
-  });
+  return candidateSlotsForPro(dateStr,pid,selectedDuration()).includes(time);
 }
-function availableProsAt(dateStr,time){return activePros().filter(([pid])=>proAvailable(pid,dateStr,time))}
+function availableProsAt(dateStr,time){
+  return activePros().filter(([pid])=>proAvailable(pid,dateStr,time));
+}
 function renderBooking(){
   businessHeader();
   const sv=Object.entries(P.services||{}).filter(([,s])=>s.active!==false),bs=Object.entries(P.branches||{}).filter(([,b])=>b.active!==false),ps=activePros(),svc=P.services?.[SVC],br=P.branches?.[BR],pro=PRO==="ANY"?null:P.professionals?.[PRO];
@@ -119,7 +160,7 @@ function renderBooking(){
   <div class="card" style="margin-top:15px"><h2>2. Sucursal y profesional</h2><div class="branch-cards">${bs.map(([id,b])=>`<div class="branch-card"><b>${esc(b.name)}</b><small>${esc(b.address||"Dirección pendiente de cargar")}</small>${b.address?`<a class="btn" style="margin-top:9px;width:100%" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}">Ver en Google Maps</a>`:""}</div>`).join("")}</div><div class="field"><label>Elegir sucursal</label><select onchange="BR=this.value;PRO='ANY';TIME='';renderBooking()">${bs.map(([id,b])=>`<option value="${id}" ${id===BR?"selected":""}>${esc(b.name)}</option>`).join("")}</select></div>
   <button class="opt ${PRO==="ANY"?"sel":""}" onclick="PRO='ANY';TIME='';renderBooking()"><span><b>Cualquier peluquero</b><small>Se asigna automáticamente uno disponible en ese horario</small></span><span>⚡</span></button>
   ${ps.map(([id,p])=>`<button class="opt ${PRO===id?"sel":""}" onclick="PRO='${id}';TIME='';renderBooking()"><span><b>${esc(p.name)}</b><small>${esc(p.specialty||"Profesional")}</small></span><span>✓</span></button>`).join("")||'<p class="muted">No hay profesionales activos en esta sucursal.</p>'}</div>
-  <div class="card" style="margin-top:15px"><h2>3. Fecha y hora</h2><p class="muted">Los horarios pasados se bloquean automáticamente.</p><div class="field"><label>Fecha</label><input id="date" type="date" min="${localDateString()}" onkeydown="return false" onclick="this.showPicker&&this.showPicker()" onchange="setDateAndTimes()"></div><div id="times" class="times"></div></div></div>
+  <div class="card" style="margin-top:15px"><h2>3. Fecha y hora</h2><p class="muted">Solo aparecen horarios realmente disponibles para la duración del servicio.</p><div class="field"><label>Fecha</label><input id="date" type="date" min="${localDateString()}" onkeydown="return false" onclick="this.showPicker&&this.showPicker()" onchange="setDateAndTimes()"></div><div id="times" class="times"></div></div></div>
   <aside class="card summary"><h2>Resumen</h2><div class="sum"><span>Servicio</span><b>${esc(svc?.name||"—")}</b></div><div class="sum"><span>Sucursal</span><b>${esc(br?.name||"—")}</b></div><div class="sum"><span>Profesional</span><b>${PRO==="ANY"?"Cualquier peluquero":esc(pro?.name||"—")}</b></div><div class="sum"><span>Fecha</span><b id="sd">${DATE||"—"}</b></div><div class="sum"><span>Hora</span><b id="st">${TIME?TIME+" hs":"—"}</b></div><button class="btn primary" style="width:100%;margin-top:12px" onclick="clientForm()">Continuar</button></aside></div></section>`;
   const input=document.getElementById("date");input.value=DATE||localDateString();DATE=input.value;renderTimes();
 }
@@ -131,21 +172,20 @@ function renderTimes(){
 
   const duration=selectedDuration();
   let slots=[];
+
   if(PRO==="ANY"){
     const set=new Set();
-    activePros().forEach(([pid])=>proSlots(DATE,pid,duration).forEach(t=>set.add(t)));
+    activePros().forEach(([pid])=>{
+      candidateSlotsForPro(DATE,pid,duration).forEach(t=>set.add(t));
+    });
     slots=[...set].sort((a,b)=>toMin(a)-toMin(b));
   }else{
-    slots=proSlots(DATE,PRO,duration);
+    slots=candidateSlotsForPro(DATE,PRO,duration);
   }
 
-  box.innerHTML=slots.map(t=>{
-    const past=isPastSlot(DATE,t);
-    const free=PRO==="ANY"?availableProsAt(DATE,t).length>0:proAvailable(PRO,DATE,t);
-    if(past)return `<button class="time past" disabled>${t}</button>`;
-    if(!free)return `<button class="time busy" disabled>${t}</button>`;
-    return `<button class="time ${TIME===t?"sel":""}" onclick="pick('${t}',this)">${t}</button>`;
-  }).join("")||'<p class="muted">No hay horarios disponibles para la duración de este servicio.</p>';
+  // Solo mostramos horarios que realmente se pueden tocar/reservar.
+  box.innerHTML=slots.map(t=>`<button class="time ${TIME===t?"sel":""}" onclick="pick('${t}',this)">${t}</button>`).join("")
+    ||'<p class="muted">No quedan horarios disponibles para este servicio.</p>';
 }
 function pick(t,e){document.querySelectorAll(".time").forEach(x=>x.classList.remove("sel"));e.classList.add("sel");TIME=t;document.getElementById("st").textContent=t+" hs"}
 function clientForm(){
