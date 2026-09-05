@@ -296,6 +296,13 @@ function localDateString(d=new Date()){
   const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
   return `${y}-${m}-${day}`;
 }
+function isPastAgendaSlot(dateStr,time){
+  const today=localDateString();
+  if(dateStr<today)return true;
+  if(dateStr>today)return false;
+  const [h,m]=String(time).split(":").map(Number),now=new Date();
+  return h*60+m<=now.getHours()*60+now.getMinutes();
+}
 function updateAgendaDateLabel(){
   const input=document.getElementById("ad");
   const label=document.getElementById("agenda-date-label");
@@ -341,7 +348,20 @@ function allowed(d,pid=null){
   return a.filter(t=>M(t)>=x&&M(t)<=y);
 }
 function prosFilter(){const branch=document.getElementById("ab").value;document.getElementById("ap").innerHTML='<option value="ALL">Todos</option>'+Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).map(([id,p])=>`<option value="${id}">${esc(p.name)}</option>`).join("")}
-function agendaGrid(){const branch=document.getElementById("ab").value,pf=document.getElementById("ap").value,d=document.getElementById("ad").value;if(!d)return;if(B.closedDates?.[d]?.closed){document.getElementById("ag").innerHTML=`<div class="row"><div><b>Local cerrado</b><small>${esc(B.closedDates[d].reason||"Día no laborable")}</small></div><span class="badge br">Cerrado</span></div>`;return}const ps=Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).filter(([id])=>pf==="ALL"||id===pf);let rows="";ps.forEach(([pid,p])=>allowed(d,pid).forEach(t=>{const absent=B.professionalAbsences?.[pid]?.[d]?.absent,b=Object.entries(BOOK).map(([key,x])=>({...x,key})).find(x=>x.status!=="cancelled"&&String(x.dateStr||"")===String(d)&&String(x.time||"")===String(t)&&(String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(p.name)));if(absent)rows+=`<tr><td>${t}</td><td>${esc(p.name)}</td><td><span class="badge bm">Ausente</span></td><td colspan="5">${esc(B.professionalAbsences[pid][d].reason||"No trabaja")}</td><td>—</td></tr>`;else if(b)rows+=`<tr><td><b>${t}</b></td><td>${esc(p.name)}</td><td><span class="badge ba">Reservado</span></td><td><b>${esc(b.patient||"")}</b></td><td>${esc(b.phone||"")}</td><td>${esc(b.service||"")}</td><td>$ ${Number(b.totalPrice||0).toLocaleString("es-AR")}</td><td>${esc(b.branchName||"")}</td><td><button class="btn danger" onclick="cancelT('${b.key}')">Cancelar</button></td></tr>`;else rows+=`<tr><td><b>${t}</b></td><td>${esc(p.name)}</td><td><span class="badge bg">Disponible</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>Libre</td></tr>`}));document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Hora</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay profesionales para este filtro.</td></tr>'}</tbody></table></div>`}
+function agendaGrid(){
+  const branch=document.getElementById("ab").value,pf=document.getElementById("ap").value,d=document.getElementById("ad").value;if(!d)return;
+  if(B.closedDates?.[d]?.closed){document.getElementById("ag").innerHTML=`<div class="row"><div><b>Local cerrado</b><small>${esc(B.closedDates[d].reason||"Día no laborable")}</small></div><span class="badge br">Cerrado</span></div>`;return}
+  const ps=Object.entries(B.professionals||{}).filter(([,p])=>p.active!==false&&p.branchId===branch).filter(([id])=>pf==="ALL"||id===pf),all=Object.entries(BOOK).map(([key,x])=>({...x,key}));let rows="";
+  ps.forEach(([pid,p])=>allowed(d,pid).forEach(t=>{
+    const absent=B.professionalAbsences?.[pid]?.[d]?.absent,past=isPastAgendaSlot(d,t);
+    const b=all.find(x=>x.status!=="cancelled"&&String(x.dateStr||"")===String(d)&&String(x.time||"")===String(t)&&(String(x.professionalId||"")===String(pid)||String(x.barber||x.professionalName||"")===String(p.name)));
+    if(b)rows+=`<tr><td><b>${t} hs</b></td><td>${esc(p.name)}</td><td><span class="badge ba">Reservado</span></td><td><b>${esc(b.patient||"")}</b></td><td>${esc(b.phone||"")}</td><td>${esc(b.service||"")}</td><td>$ ${Number(b.totalPrice||0).toLocaleString("es-AR")}</td><td>${esc(b.branchName||B.branches?.[branch]?.name||"")}</td><td><button class="btn danger" onclick="cancelT('${b.key}')">Cancelar</button></td></tr>`;
+    else if(absent)rows+=`<tr><td>${t} hs</td><td>${esc(p.name)}</td><td><span class="badge bm">Ausente</span></td><td colspan="5">${esc(B.professionalAbsences[pid][d].reason||"No trabaja")}</td><td>—</td></tr>`;
+    else if(past)rows+=`<tr style="opacity:.45"><td>${t} hs</td><td>${esc(p.name)}</td><td><span class="badge bm">Pasado</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>—</td></tr>`;
+    else rows+=`<tr><td><b>${t} hs</b></td><td>${esc(p.name)}</td><td><span class="badge bg">Disponible</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>${esc(B.branches?.[branch]?.name||"")}</td><td>Libre</td></tr>`;
+  }));
+  document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Hora</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay profesionales para este filtro.</td></tr>'}</tbody></table></div>`;
+}
 async function cancelT(k){if(confirm("¿Cancelar turno?")){await db.ref(`negocios/${B.id}/turnos/${k}`).update({status:"cancelled",cancelledAt:Date.now()});await dashboard()}}
 function lists(){document.getElementById("cl").innerHTML=Object.entries(B.closedDates||{}).filter(([,x])=>x.closed).map(([d,x])=>`<div class="row"><div><b>${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeClosed('${d}')">Quitar</button></div>`).join("");let a=[];Object.entries(B.professionalAbsences||{}).forEach(([p,ds])=>Object.entries(ds||{}).forEach(([d,x])=>x.absent&&a.push([p,d,x])));document.getElementById("xl").innerHTML=a.map(([p,d,x])=>`<div class="row"><div><b>${esc(B.professionals?.[p]?.name||"")} · ${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeAbs('${p}','${d}')">Quitar</button></div>`).join("")}
 async function closeDay(){const d=document.getElementById("cd").value;if(!d)return;await db.ref(`negocios/${B.id}/closedDates/${d}`).set({closed:true,reason:document.getElementById("cr").value.trim()});await refreshAndSync();await dashboard()}
@@ -351,7 +371,7 @@ async function removeAbs(p,d){await db.ref(`negocios/${B.id}/professionalAbsence
 function prosPanel(){
   const opts=branchOptions();
   const activePros=Object.entries(B.professionals||{});
-  const r=activePros.map(([id,p])=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(B.branches?.[p.branchId]?.name||"")} · ${esc(p.specialty||"")}</small></div><div class="actions"><button class="btn ${p.active===false?"green":"danger"}" onclick="togglePro('${id}',${p.active===false?"true":"false"})">${p.active===false?"Activar":"Dar de baja"}</button><button class="btn" onclick="replacePro('${id}')">Reemplazar</button></div></div>`).join("");
+  const r=activePros.map(([id,p])=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(B.branches?.[p.branchId]?.name||"")} · ${esc(p.specialty||"")}</small></div><div class="actions"><button class="btn ${p.active===false?"green":"danger"}" onclick="togglePro('${id}',${p.active===false?"true":"false"})">${p.active===false?"Activar":"Dar de baja"}</button><button class="btn" onclick="replacePro('${id}')">Editar / Reemplazar</button><button class="btn danger" onclick="deletePro('${id}')">Eliminar</button></div></div>`).join("");
 
   return `<div class="title" style="font-size:20px">Profesionales</div>
   <div class="grid2"><div class="field"><label>Nombre</label><input id="pn"></div><div class="field"><label>Especialidad</label><input id="ps"></div></div>
@@ -403,15 +423,27 @@ async function clearProSchedule(){
 }
 async function addPro(){const n=document.getElementById("pn").value.trim(),b=document.getElementById("pb").value;if(!n||!b)return;await db.ref(`negocios/${B.id}/professionals`).push({name:n,specialty:document.getElementById("ps").value.trim(),branchId:b,active:true});await refreshAndSync();await dashboard()}
 async function togglePro(id,val){await db.ref(`negocios/${B.id}/professionals/${id}`).update({active:val});await refreshAndSync();await dashboard()}
+async function deletePro(id){const p=B.professionals?.[id];if(!p)return;if(!confirm(`¿Eliminar a "${p.name}"?`))return;await db.ref(`negocios/${B.id}/professionals/${id}`).remove();await db.ref(`negocios/${B.id}/professionalSchedules/${id}`).remove();await db.ref(`negocios/${B.id}/professionalAbsences/${id}`).remove();await refreshAndSync();await dashboard()}
 async function replacePro(id){const p=B.professionals[id],n=prompt("Nombre del reemplazo:",p.name);if(!n)return;const s=prompt("Especialidad:",p.specialty||"")||"";await db.ref(`negocios/${B.id}/professionals/${id}`).update({name:n,specialty:s,active:true,replacedAt:Date.now()});await refreshAndSync();await dashboard()}
-function branchPanel(){const r=Object.entries(B.branches||{}).map(([id,b])=>`<div class="row"><div><b>${esc(b.name)}</b><small>${esc(b.address||"")}</small></div></div>`).join("");return `<div class="title" style="font-size:20px">Sucursales</div><div class="grid2"><div class="field"><label>Nombre</label><input id="bn"></div><div class="field"><label>Dirección</label><input id="ba"></div></div><button class="btn gold" onclick="addBranch()">Agregar</button>${r}`}
+function branchPanel(){
+  const r=Object.entries(B.branches||{}).map(([id,b])=>`<div class="row"><div><b>${esc(b.name)}</b><small>${esc(b.address||"Sin dirección")}</small></div><div class="actions"><button class="btn" onclick="editBranch('${id}')">Editar</button><button class="btn danger" onclick="deleteBranch('${id}')">Eliminar</button></div></div>`).join("");
+  return `<div class="title" style="font-size:20px">Sucursales</div><p class="muted">Podés editar nombre/dirección o eliminar una sucursal sin profesionales asignados.</p><div class="grid2"><div class="field"><label>Nombre</label><input id="bn"></div><div class="field"><label>Dirección</label><input id="ba"></div></div><button class="btn gold" onclick="addBranch()">Agregar</button>${r}`;
+}
 async function addBranch(){const n=document.getElementById("bn").value.trim();if(!n)return;await db.ref(`negocios/${B.id}/branches`).push({name:n,address:document.getElementById("ba").value.trim(),active:true});await refreshAndSync();await dashboard()}
-function servicePanel(){const r=Object.entries(B.services||{}).map(([id,s])=>`<div class="row"><div><b>${esc(s.name)}</b><small>${s.duration||40} min · $ ${Number(s.price||0).toLocaleString("es-AR")}</small></div></div>`).join("");return `<div class="title" style="font-size:20px">Servicios</div><div class="grid2"><div class="field"><label>Nombre</label><input id="sn"></div><div class="field"><label>Precio</label><input id="sp" type="number"></div><div class="field"><label>Duración</label><input id="sdur" type="number" value="40"></div><div class="field"><label>Descripción</label><input id="sdesc"></div></div><button class="btn gold" onclick="addService()">Agregar</button>${r}`}
+async function editBranch(id){const b=B.branches?.[id];if(!b)return;const n=prompt("Nombre de la sucursal:",b.name||"");if(n===null||!n.trim())return;const a=prompt("Dirección completa:",b.address||"");if(a===null)return;await db.ref(`negocios/${B.id}/branches/${id}`).update({name:n.trim(),address:a.trim()});await refreshAndSync();await dashboard()}
+async function deleteBranch(id){const b=B.branches?.[id];if(!b)return;const assigned=Object.values(B.professionals||{}).some(p=>p.branchId===id);if(assigned)return alert("Primero mové o eliminá los profesionales de esta sucursal.");if(!confirm(`¿Eliminar la sucursal "${b.name}"?`))return;await db.ref(`negocios/${B.id}/branches/${id}`).remove();await refreshAndSync();await dashboard()}
+function servicePanel(){
+  const r=Object.entries(B.services||{}).map(([id,s])=>`<div class="row"><div><b>${esc(s.name)}</b><small>${s.duration||40} min · $ ${Number(s.price||0).toLocaleString("es-AR")} · ${esc(s.description||"")}</small></div><div class="actions"><button class="btn" onclick="editService('${id}')">Editar</button><button class="btn danger" onclick="deleteService('${id}')">Eliminar</button></div></div>`).join("");
+  return `<div class="title" style="font-size:20px">Servicios</div><p class="muted">Podés editar o eliminar cualquier servicio.</p><div class="grid2"><div class="field"><label>Nombre</label><input id="sn"></div><div class="field"><label>Precio</label><input id="sp" type="number"></div><div class="field"><label>Duración</label><input id="sdur" type="number" value="40"></div><div class="field"><label>Descripción</label><input id="sdesc"></div></div><button class="btn gold" onclick="addService()">Agregar</button>${r}`;
+}
 async function addService(){const n=document.getElementById("sn").value.trim();if(!n)return;await db.ref(`negocios/${B.id}/services`).push({name:n,price:Number(document.getElementById("sp").value||0),duration:Number(document.getElementById("sdur").value||40),description:document.getElementById("sdesc").value.trim(),active:true});await refreshAndSync();await dashboard()}
+async function editService(id){const s=B.services?.[id];if(!s)return;const n=prompt("Nombre:",s.name||"");if(n===null||!n.trim())return;const p=prompt("Precio:",String(s.price||0));if(p===null)return;const d=prompt("Duración en minutos:",String(s.duration||40));if(d===null)return;const desc=prompt("Descripción:",s.description||"");if(desc===null)return;await db.ref(`negocios/${B.id}/services/${id}`).update({name:n.trim(),price:Number(p||0),duration:Number(d||40),description:desc.trim()});await refreshAndSync();await dashboard()}
+async function deleteService(id){const s=B.services?.[id];if(!s)return;if(!confirm(`¿Eliminar "${s.name}"?`))return;await db.ref(`negocios/${B.id}/services/${id}`).remove();await refreshAndSync();await dashboard()}
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter") return;
   if(document.activeElement?.id==="lw") log();
   if(document.activeElement?.id==="rw") reg();
 });
+setInterval(()=>{if(document.getElementById("ag"))agendaGrid()},30000);
 auth.onAuthStateChanged(async u=>{if(u)await dashboard();else loginUI()});
 </script></body></html>
