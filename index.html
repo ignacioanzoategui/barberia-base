@@ -14,7 +14,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,10,11,.92);backdrop-f
 .card{background:linear-gradient(180deg,var(--s2),var(--s));border:1px solid var(--b);border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.18)}.k{font-size:10px;color:var(--a);font-weight:900;letter-spacing:2px;text-transform:uppercase}.title{font-size:28px;font-weight:850;margin-top:5px}.muted{font-size:12px;color:var(--m);line-height:1.55;margin-top:6px}
 .hero{text-align:center;padding:88px 12px 45px}.hero h1{font-family:Georgia,serif;font-size:clamp(42px,7vw,70px);font-weight:400;letter-spacing:-2px;margin:16px 0}.hero p{max-width:650px;margin:auto;color:var(--m);line-height:1.7;font-size:14px}.home-actions{display:flex;justify-content:center;gap:10px;margin-top:25px}
 .business-entry{text-align:center;padding:78px 12px 40px}.business-mark{width:72px;height:72px;border:1px solid rgba(215,179,90,.5);background:rgba(215,179,90,.07);border-radius:20px;margin:0 auto 16px;display:grid;place-items:center;color:var(--a);font-size:28px;font-weight:900}.business-entry h1{font-family:Georgia,serif;font-size:clamp(42px,7vw,66px);font-weight:400;letter-spacing:-1.8px;margin:12px 0}.business-entry p{max-width:580px;margin:auto;color:var(--m);font-size:14px;line-height:1.7}.entry-actions{display:flex;justify-content:center;gap:10px;margin-top:26px;flex-wrap:wrap}.entry-branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:760px;margin:35px auto 0;text-align:left}.branch-preview{border:1px solid var(--b);background:var(--s);border-radius:14px;padding:15px}.branch-preview small{display:block;color:var(--m);margin-top:5px;line-height:1.45}
-.booking{display:grid;grid-template-columns:1fr 330px;gap:18px}.opt{width:100%;border:1px solid var(--b);background:var(--s2);color:#fff;border-radius:12px;padding:14px;display:flex;justify-content:space-between;gap:12px;text-align:left;align-items:center;margin-top:8px}.opt.sel{border-color:var(--a);background:rgba(215,179,90,.08)}.opt small{display:block;color:var(--m);margin-top:4px}.field{margin-top:12px}.field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--m);font-weight:900;margin-bottom:7px}.field input,.field select{width:100%;padding:12px;background:#0f1012;border:1px solid var(--b);color:#fff;border-radius:10px;outline:none}.branch-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.branch-card{border:1px solid var(--b);background:#101113;border-radius:12px;padding:13px}.branch-card small{display:block;color:var(--m);font-size:11px;line-height:1.45;margin-top:5px}
+.booking{display:grid;grid-template-columns:1fr 330px;gap:18px}.opt{width:100%;border:1px solid var(--b);background:var(--s2);color:#fff;border-radius:12px;padding:14px;display:flex;justify-content:space-between;gap:12px;text-align:left;align-items:center;margin-top:8px}.opt.sel{border-color:var(--a);background:rgba(215,179,90,.08)}.opt small{display:block;color:var(--m);margin-top:4px}.service-main{display:flex;align-items:center;gap:12px;min-width:0}.service-thumb{width:74px;height:58px;object-fit:cover;border-radius:10px;border:1px solid var(--b);background:#0f1012;flex:0 0 auto}.service-placeholder{width:74px;height:58px;border-radius:10px;border:1px solid var(--b);background:#0f1012;display:grid;place-items:center;color:var(--m);font-size:20px;flex:0 0 auto}.field{margin-top:12px}.field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--m);font-weight:900;margin-bottom:7px}.field input,.field select{width:100%;padding:12px;background:#0f1012;border:1px solid var(--b);color:#fff;border-radius:10px;outline:none}.branch-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.branch-card{border:1px solid var(--b);background:#101113;border-radius:12px;padding:13px}.branch-card small{display:block;color:var(--m);font-size:11px;line-height:1.45;margin-top:5px}
 .times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.time{padding:11px;border:1px solid var(--b);background:var(--s2);color:#fff;border-radius:9px;font-weight:800}.time.sel{border-color:var(--a);color:var(--a);background:rgba(215,179,90,.08)}.time.busy{opacity:.28;text-decoration:line-through;cursor:not-allowed}.time.past{opacity:.22;cursor:not-allowed}.summary{position:sticky;top:86px;height:max-content}.sum{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:10px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:18px;z-index:100}.modal.open{display:flex}.modal-card{width:min(480px,100%);max-height:88vh;overflow:auto;background:#17191c;border:1px solid #303239;border-radius:18px;padding:22px}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.close{width:32px;height:32px;padding:0}
 @media(max-width:800px){.booking{grid-template-columns:1fr}.summary{position:static}.times{grid-template-columns:repeat(2,1fr)}.branch-cards,.entry-branches{grid-template-columns:1fr}}
@@ -63,10 +63,38 @@ function resetHeader(){document.getElementById("topbrand").innerHTML='TURNOS <sp
 function businessHeader(){document.getElementById("topbrand").textContent=P.name||"Barbería";const a=document.getElementById("topactions");a.className="";a.innerHTML='<button class="btn icon-btn" aria-label="Ver sucursales" title="Sucursales" onclick="showLocations()">⌖</button>'}
 function home(){resetHeader();document.getElementById("app").innerHTML=`<section class="wrap"><div class="hero"><div class="k">Sistema de reservas</div><h1>Reservas online para barberías.</h1><p>Esta portada es neutra. Los clientes ingresan desde el link que les comparte su barbería.</p><div class="home-actions"><a class="btn primary" href="negocios.html">Registrar barbería</a><a class="btn" href="negocios.html">Iniciar sesión</a></div></div></section>`}
 async function load(slug){
-  const s=await db.ref(`publicProfiles/${slug}`).once("value");
-  if(!s.exists()){resetHeader();document.getElementById("app").innerHTML='<section class="wrap"><div class="card"><h2>Barbería no encontrada</h2><p class="muted">El enlace no corresponde a un negocio activo.</p></div></section>';return}
-  P=s.val();UID=P.ownerUid;BR=Object.keys(P.branches||{}).find(id=>P.branches[id]?.active!==false)||null;PRO="ANY";SVC=Object.entries(P.services||{}).find(([,x])=>x.active!==false)?.[0]||null;
-  businessHeader();attachBookings();businessLanding();
+  const ref=db.ref(`publicProfiles/${slug}`);
+  ref.on("value",s=>{
+    if(!s.exists()){
+      resetHeader();
+      document.getElementById("app").innerHTML='<section class="wrap"><div class="card"><h2>Barbería no encontrada</h2><p class="muted">El enlace no corresponde a un negocio activo.</p></div></section>';
+      return;
+    }
+    const firstLoad=!P;
+    P=s.val();
+    UID=P.ownerUid;
+
+    if(firstLoad){
+      BR=Object.keys(P.branches||{}).find(id=>P.branches[id]?.active!==false)||null;
+      PRO="ANY";
+      SVC=Object.entries(P.services||{}).find(([,x])=>x.active!==false)?.[0]||null;
+      businessHeader();
+      attachBookings();
+      businessLanding();
+    }else{
+      // Si la barbería cambia horarios/descansos/servicios, el cliente lo ve sin recargar.
+      if(!P.branches?.[BR] || P.branches[BR]?.active===false){
+        BR=Object.keys(P.branches||{}).find(id=>P.branches[id]?.active!==false)||null;
+      }
+      if(PRO!=="ANY" && (!P.professionals?.[PRO] || P.professionals[PRO]?.active===false)){
+        PRO="ANY";
+      }
+      if(!P.services?.[SVC] || P.services[SVC]?.active===false){
+        SVC=Object.entries(P.services||{}).find(([,x])=>x.active!==false)?.[0]||null;
+      }
+      if(document.getElementById("times") && DATE) renderTimes();
+    }
+  });
 }
 function attachBookings(){
   if(bookingRef)bookingRef.off();
@@ -156,7 +184,7 @@ function renderBooking(){
   businessHeader();
   const sv=Object.entries(P.services||{}).filter(([,s])=>s.active!==false),bs=Object.entries(P.branches||{}).filter(([,b])=>b.active!==false),ps=activePros(),svc=P.services?.[SVC],br=P.branches?.[BR],pro=PRO==="ANY"?null:P.professionals?.[PRO];
   document.getElementById("app").innerHTML=`<section class="wrap"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px"><div><div class="k">${esc(P.name)}</div><div class="title" style="font-size:24px">Reservar turno</div></div><button class="btn" onclick="businessLanding()">← Inicio</button></div><div class="booking"><div>
-  <div class="card"><h2>1. Servicio</h2>${sv.map(([id,s])=>`<button class="opt ${SVC===id?"sel":""}" onclick="SVC='${id}';renderBooking()"><span><b>${esc(s.name)}</b><small>${s.duration||40} min</small></span><b>$ ${Number(s.price||0).toLocaleString("es-AR")}</b></button>`).join("")||'<p class="muted">La barbería todavía no cargó servicios.</p>'}</div>
+  <div class="card"><h2>1. Servicio</h2>${sv.map(([id,s])=>`<button class="opt ${SVC===id?"sel":""}" onclick="SVC='${id}';renderBooking()"><span class="service-main">${s.imageUrl?`<img class="service-thumb" src="${esc(s.imageUrl)}" alt="${esc(s.name)}" loading="lazy">`:`<span class="service-placeholder">✂️</span>`}<span><b>${esc(s.name)}</b><small>${s.duration||40} min · ${esc(s.description||"")}</small></span></span><b>$ ${Number(s.price||0).toLocaleString("es-AR")}</b></button>`).join("")||'<p class="muted">La barbería todavía no cargó servicios.</p>'}</div>
   <div class="card" style="margin-top:15px"><h2>2. Sucursal y profesional</h2><div class="branch-cards">${bs.map(([id,b])=>`<div class="branch-card"><b>${esc(b.name)}</b><small>${esc(b.address||"Dirección pendiente de cargar")}</small>${b.address?`<a class="btn" style="margin-top:9px;width:100%" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}">Ver en Google Maps</a>`:""}</div>`).join("")}</div><div class="field"><label>Elegir sucursal</label><select onchange="BR=this.value;PRO='ANY';TIME='';renderBooking()">${bs.map(([id,b])=>`<option value="${id}" ${id===BR?"selected":""}>${esc(b.name)}</option>`).join("")}</select></div>
   <button class="opt ${PRO==="ANY"?"sel":""}" onclick="PRO='ANY';TIME='';renderBooking()"><span><b>Cualquier peluquero</b><small>Se asigna automáticamente uno disponible en ese horario</small></span><span>⚡</span></button>
   ${ps.map(([id,p])=>`<button class="opt ${PRO===id?"sel":""}" onclick="PRO='${id}';TIME='';renderBooking()"><span><b>${esc(p.name)}</b><small>${esc(p.specialty||"Profesional")}</small></span><span>✓</span></button>`).join("")||'<p class="muted">No hay profesionales activos en esta sucursal.</p>'}</div>
