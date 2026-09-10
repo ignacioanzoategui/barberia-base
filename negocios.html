@@ -53,7 +53,7 @@ function loginUI(){
           <div class="field"><label>Nombre de la barbería</label><input id="rn" autocomplete="organization"></div>
           <div class="field"><label>WhatsApp</label><input id="rp" inputmode="tel"></div>
           <div class="field"><label>Email</label><input id="re" type="email" autocomplete="email"></div>
-          <div class="field"><label>Contraseña</label><input id="rw" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
+          <div class="field"><label>Contraseña</label><input id="rw" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>
           <button id="register-btn" class="btn primary" style="width:100%;margin-top:14px" onclick="reg()">Registrar barbería</button>
         </div>
 
@@ -101,6 +101,10 @@ async function reg(){
 
   if(!n||!e||!w){
     rm.innerHTML='<p style="color:var(--r);margin-top:10px">Completá nombre, email y contraseña.</p>';
+    return;
+  }
+  if(w.length<8){
+    rm.innerHTML='<p style="color:var(--r);margin-top:10px">Usá una contraseña de al menos 8 caracteres.</p>';
     return;
   }
 
@@ -185,6 +189,91 @@ async function getBusiness(){const u=auth.currentUser;if(!u)return null;const s=
 function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{},professionalSchedules:o.professionalSchedules||{},professionalBreaks:o.professionalBreaks||{}}}
 async function syncPublic(uid,obj){await db.ref(`publicProfiles/${obj.slug}`).set(publicPayload(uid,obj))}
 async function refreshAndSync(){B=await getBusiness();if(B){try{await syncPublic(B.id,B)}catch(e){console.warn("sync public:",e)}}}
+
+function publicBookingFromLegacy(id,t){
+  return {
+    key:t.key||id,
+    dateStr:t.dateStr||"",
+    time:t.time||"",
+    duration:Number(t.duration||40),
+    branchId:t.branchId||"",
+    professionalId:t.professionalId||"",
+    serviceId:t.serviceId||"",
+    status:t.status||"reserved",
+    createdAt:Number(t.createdAt||Date.now())
+  };
+}
+function privateBookingFromLegacy(id,t){
+  return {
+    key:t.key||id,
+    patient:t.patient||"",
+    phone:t.phone||"",
+    dateStr:t.dateStr||"",
+    time:t.time||"",
+    serviceId:t.serviceId||"",
+    service:t.service||"",
+    totalPrice:Number(t.totalPrice||0),
+    duration:Number(t.duration||40),
+    branchId:t.branchId||"",
+    branchName:t.branchName||"",
+    professionalId:t.professionalId||"",
+    professionalName:t.professionalName||t.barber||"",
+    barber:t.barber||t.professionalName||"",
+    status:t.status||"reserved",
+    createdAt:Number(t.createdAt||Date.now()),
+    source:t.source||"legacy"
+  };
+}
+async function migrateLegacyBookings(){
+  if(!B?.id)return;
+  const ref=db.ref(`negocios/${B.id}/turnos`);
+  const snap=await ref.once("value");
+  const turns=snap.val()||{};
+  const updates={};
+  let changed=false;
+
+  for(const [id,t] of Object.entries(turns)){
+    // V11 y anteriores guardaban nombre/celular dentro de la rama pública.
+    if(t && (Object.prototype.hasOwnProperty.call(t,"patient") ||
+             Object.prototype.hasOwnProperty.call(t,"phone") ||
+             Object.prototype.hasOwnProperty.call(t,"totalPrice") ||
+             Object.prototype.hasOwnProperty.call(t,"professionalName") ||
+             Object.prototype.hasOwnProperty.call(t,"service"))){
+      const privateRef=await db.ref(`bookingPrivate/${B.id}/${id}`).once("value");
+      if(!privateRef.exists()){
+        updates[`bookingPrivate/${B.id}/${id}`]=privateBookingFromLegacy(id,t);
+      }
+
+      // Si es un turno viejo y todavía no tenía serviceId, intentamos encontrarlo.
+      let serviceId=t.serviceId||"";
+      if(!serviceId && t.service){
+        serviceId=Object.entries(B.services||{}).find(([,s])=>s?.name===t.service)?.[0]||"";
+      }
+      const cleaned=publicBookingFromLegacy(id,{...t,serviceId});
+      updates[`negocios/${B.id}/turnos/${id}`]=cleaned;
+      changed=true;
+    }
+  }
+
+  if(changed){
+    await db.ref().update(updates);
+  }
+}
+async function loadSecureBookings(){
+  if(!B?.id)return {};
+  const [pubSnap,privSnap]=await Promise.all([
+    db.ref(`negocios/${B.id}/turnos`).once("value"),
+    db.ref(`bookingPrivate/${B.id}`).once("value")
+  ]);
+  const pub=pubSnap.val()||{};
+  const priv=privSnap.val()||{};
+  const merged={};
+  for(const [id,t] of Object.entries(pub)){
+    merged[id]={...t,...(priv[id]||{})};
+  }
+  return merged;
+}
+
 async function dashboard(){
   try{
     B=await getBusiness();
@@ -194,7 +283,10 @@ async function dashboard(){
       return;
     }
 
-    BOOK=(await db.ref(`negocios/${B.id}/turnos`).once("value")).val()||{};
+    // Migra automáticamente turnos viejos que todavía tenían datos personales
+    // en la rama pública y luego carga la vista privada del negocio.
+    await migrateLegacyBookings();
+    BOOK=await loadSecureBookings();
 
     // Primero mostramos el panel. Una falla del perfil público nunca bloquea el login.
     renderDash();
@@ -267,13 +359,26 @@ async function repairProfile(){
 function attachBookingListener(){
   if(!B?.id)return;
   if(bookingListenerRef)bookingListenerRef.off();
+  if(window.bookingPrivateListenerRef)window.bookingPrivateListenerRef.off();
+
   bookingListenerRef=db.ref(`negocios/${B.id}/turnos`);
-  bookingListenerRef.on("value",snap=>{
-    BOOK=snap.val()||{};
-    // Actualizamos estadísticas y agenda sin recargar el panel entero.
-    if(document.getElementById("s1")) fillStats();
-    if(document.getElementById("ag")) agendaGrid();
-  });
+  window.bookingPrivateListenerRef=db.ref(`bookingPrivate/${B.id}`);
+
+  let refreshing=false;
+  const refresh=async()=>{
+    if(refreshing)return;
+    refreshing=true;
+    try{
+      BOOK=await loadSecureBookings();
+      if(document.getElementById("s1"))fillStats();
+      if(document.getElementById("ag"))agendaGrid();
+    }finally{
+      refreshing=false;
+    }
+  };
+
+  bookingListenerRef.on("value",refresh);
+  window.bookingPrivateListenerRef.on("value",refresh);
 }
 
 function renderDash(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="head"><div><div class="k">Panel del negocio</div><div class="title">${esc(B.name)}</div><p class="muted">${esc(B.email||"")}</p></div><div class="actions"><button class="btn" onclick="location.href='index.html?negocio=${B.slug}'">Ver página de clientes</button><button class="btn" onclick="auth.signOut()">Cerrar sesión</button></div></div><div class="stats"><div class="stat a"><small>Turnos de la fecha</small><strong id="s1">0</strong></div><div class="stat"><small>Clientes de la fecha</small><strong id="s2">0</strong></div><div class="stat"><small>Ingresos de la fecha</small><strong id="s3">$ 0</strong></div><div class="stat"><small>Cancelados de la fecha</small><strong id="s4">0</strong></div></div><div class="tabs"><button class="btn tab active" onclick="show('agenda',this)">Agenda</button><button class="btn tab" onclick="show('stats',this)">Estadísticas</button><button class="btn tab" onclick="show('hours',this)">Horarios</button><button class="btn tab" onclick="show('days',this)">Días no laborables</button><button class="btn tab" onclick="show('pros',this)">Profesionales</button><button class="btn tab" onclick="show('branches',this)">Sucursales</button><button class="btn tab" onclick="show('services',this)">Servicios</button><button class="btn tab" onclick="show('link',this)">Mi link</button></div>
@@ -491,7 +596,17 @@ function agendaGrid(){
 
   document.getElementById("ag").innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Horario</th><th>Profesional</th><th>Estado</th><th>Cliente</th><th>Celular</th><th>Servicio</th><th>Total</th><th>Sucursal</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#9699a1">No hay actividad pendiente para este día.</td></tr>'}</tbody></table></div>`;
 }
-async function cancelT(k){if(confirm("¿Cancelar turno?")){await db.ref(`negocios/${B.id}/turnos/${k}`).update({status:"cancelled",cancelledAt:Date.now()});await dashboard()}}
+async function cancelT(k){
+  if(!confirm("¿Cancelar turno?"))return;
+  const now=Date.now();
+  const updates={};
+  updates[`negocios/${B.id}/turnos/${k}/status`]="cancelled";
+  updates[`negocios/${B.id}/turnos/${k}/cancelledAt`]=now;
+  updates[`bookingPrivate/${B.id}/${k}/status`]="cancelled";
+  updates[`bookingPrivate/${B.id}/${k}/cancelledAt`]=now;
+  await db.ref().update(updates);
+  await dashboard();
+}
 function lists(){document.getElementById("cl").innerHTML=Object.entries(B.closedDates||{}).filter(([,x])=>x.closed).map(([d,x])=>`<div class="row"><div><b>${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeClosed('${d}')">Quitar</button></div>`).join("");let a=[];Object.entries(B.professionalAbsences||{}).forEach(([p,ds])=>Object.entries(ds||{}).forEach(([d,x])=>x.absent&&a.push([p,d,x])));document.getElementById("xl").innerHTML=a.map(([p,d,x])=>`<div class="row"><div><b>${esc(B.professionals?.[p]?.name||"")} · ${d}</b><small>${esc(x.reason||"")}</small></div><button class="btn danger" onclick="removeAbs('${p}','${d}')">Quitar</button></div>`).join("")}
 async function closeDay(){const d=document.getElementById("cd").value;if(!d)return;await db.ref(`negocios/${B.id}/closedDates/${d}`).set({closed:true,reason:document.getElementById("cr").value.trim()});await refreshAndSync();await dashboard()}
 async function removeClosed(d){await db.ref(`negocios/${B.id}/closedDates/${d}`).remove();await refreshAndSync();await dashboard()}
