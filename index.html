@@ -224,14 +224,87 @@ function clientForm(){
   document.getElementById("modal").classList.add("open");
 }
 async function saveBooking(){
-  const n=document.getElementById("cn").value.trim(),phone=document.getElementById("cp").value.trim();if(!n||!phone)return alert("Completá tus datos.");
-  const snap=await db.ref(`negocios/${UID}/turnos`).once("value");BOOKINGS=snap.val()||{};
+  const n=document.getElementById("cn").value.trim();
+  const phone=document.getElementById("cp").value.trim();
+  if(!n||!phone)return alert("Completá tus datos.");
+  if(n.length>80)return alert("El nombre es demasiado largo.");
+  if(!/^[0-9+() .-]{6,30}$/.test(phone))return alert("Ingresá un celular válido.");
+
+  // Solo volvemos a leer la agenda pública/sanitizada. Los datos personales
+  // de otros clientes nunca se descargan en la página pública.
+  const snap=await db.ref(`negocios/${UID}/turnos`).once("value");
+  BOOKINGS=snap.val()||{};
+
   let assignedId=PRO;
-  if(PRO==="ANY"){const available=availableProsAt(DATE,TIME);if(!available.length){closeModal();alert("Ese horario acaba de ocuparse por completo. Elegí otro.");renderTimes();return}assignedId=available[0][0]}
-  else if(!proAvailable(PRO,DATE,TIME)){closeModal();alert("Ese horario acaba de ocuparse para ese profesional. Elegí otro.");renderTimes();return}
-  const key=db.ref(`negocios/${UID}/turnos`).push().key,s=P.services[SVC],b=P.branches[BR],pr=P.professionals[assignedId];
-  const booking={key,patient:n,phone,dateStr:DATE,time:TIME,service:s.name,totalPrice:Number(s.price||0),duration:Number(s.duration||40),branchId:BR,branchName:b.name,professionalId:assignedId,professionalName:pr.name,barber:pr.name,status:"reserved",createdAt:Date.now(),source:"public_link"};
-  await db.ref(`negocios/${UID}/turnos/${key}`).set(booking);BOOKINGS[key]=booking;
+  if(PRO==="ANY"){
+    const available=availableProsAt(DATE,TIME);
+    if(!available.length){
+      closeModal();
+      alert("Ese horario acaba de ocuparse por completo. Elegí otro.");
+      renderTimes();
+      return;
+    }
+    assignedId=available[0][0];
+  }else if(!proAvailable(PRO,DATE,TIME)){
+    closeModal();
+    alert("Ese horario acaba de ocuparse para ese profesional. Elegí otro.");
+    renderTimes();
+    return;
+  }
+
+  const key=db.ref(`negocios/${UID}/turnos`).push().key;
+  const s=P.services[SVC],b=P.branches[BR],pr=P.professionals[assignedId];
+  const createdAt=Date.now();
+
+  // Lo que puede leer un cliente NO contiene nombre, celular ni precio.
+  const publicBooking={
+    key,
+    dateStr:DATE,
+    time:TIME,
+    duration:Number(s.duration||40),
+    branchId:BR,
+    professionalId:assignedId,
+    serviceId:SVC,
+    status:"reserved",
+    createdAt
+  };
+
+  // Los datos personales quedan en una rama privada. Solo el negocio y el
+  // administrador pueden leerla mediante las Firebase Rules.
+  const privateBooking={
+    key,
+    patient:n,
+    phone,
+    dateStr:DATE,
+    time:TIME,
+    serviceId:SVC,
+    service:s.name,
+    totalPrice:Number(s.price||0),
+    duration:Number(s.duration||40),
+    branchId:BR,
+    branchName:b.name,
+    professionalId:assignedId,
+    professionalName:pr.name,
+    barber:pr.name,
+    status:"reserved",
+    createdAt,
+    source:"public_link"
+  };
+
+  // Escritura multipath: ambas partes se guardan juntas.
+  const updates={};
+  updates[`negocios/${UID}/turnos/${key}`]=publicBooking;
+  updates[`bookingPrivate/${UID}/${key}`]=privateBooking;
+
+  try{
+    await db.ref().update(updates);
+  }catch(err){
+    console.error(err);
+    alert("No se pudo confirmar el turno. Actualizá la página y probá nuevamente.");
+    return;
+  }
+
+  BOOKINGS[key]=publicBooking;
   const msg=encodeURIComponent(`CONFIRMACIÓN DE TURNO - ${P.name}\nCliente: ${n}\nTeléfono: ${phone}\nSucursal: ${b.name}\nProfesional: ${pr.name}\nServicio: ${s.name}\nFecha: ${DATE}\nHora: ${TIME} hs`);
   document.getElementById("mc").innerHTML=`<div style="text-align:center"><div style="font-size:48px;color:var(--a)">✓</div><h2>¡Reserva confirmada!</h2><p class="muted">Tu turno quedó con <b>${esc(pr.name)}</b>.</p><button class="btn gold" style="width:100%;margin-top:14px" onclick="window.open('https://wa.me/${esc(P.phone||"")}?text=${msg}','_blank');closeModal();businessLanding()">Enviar por WhatsApp y volver al inicio</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal();businessLanding()">Volver al inicio</button></div>`;
 }
