@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Turnos Pro</title>
+<title>Corty</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
@@ -21,7 +21,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,10,11,.92);backdrop-f
 </style>
 </head>
 <body>
-<header><div id="topnav" class="nav"><div class="nav-placeholder"></div><div id="topbrand" class="brand">TURNOS <span>PRO</span></div><div id="topactions" class="nav-placeholder"></div></div></header>
+<header><div id="topnav" class="nav"><div class="nav-placeholder"></div><div id="topbrand" class="brand">CORTY</div><div id="topactions" class="nav-placeholder"></div></div></header>
 <main id="app"></main>
 <div id="modal" class="modal"><div class="modal-card"><div id="mc"></div></div></div>
 <script>
@@ -59,7 +59,7 @@ function conflictsWithBreak(pid,dateStr,start,duration){
 }
 function isPastSlot(dateStr,time){const today=localDateString();if(dateStr<today)return true;if(dateStr>today)return false;return toMin(time)<=minutesNow()}
 function closeModal(){document.getElementById("modal").classList.remove("open")}
-function resetHeader(){document.getElementById("topbrand").innerHTML='TURNOS <span>PRO</span>';document.getElementById("topactions").innerHTML="";document.getElementById("topactions").className="nav-placeholder"}
+function resetHeader(){document.getElementById("topbrand").innerHTML='CORTY';document.getElementById("topactions").innerHTML="";document.getElementById("topactions").className="nav-placeholder"}
 function businessHeader(){document.getElementById("topbrand").textContent=P.name||"Barbería";const a=document.getElementById("topactions");a.className="";a.innerHTML='<button class="btn icon-btn" aria-label="Ver sucursales" title="Sucursales" onclick="showLocations()">⌖</button>'}
 function home(){resetHeader();document.getElementById("app").innerHTML=`<section class="wrap"><div class="hero"><div class="k">Sistema de reservas</div><h1>Reservas online para barberías.</h1><p>Esta portada es neutra. Los clientes ingresan desde el link que les comparte su barbería.</p><div class="home-actions"><a class="btn primary" href="negocios.html">Registrar barbería</a><a class="btn" href="negocios.html">Iniciar sesión</a></div></div></section>`}
 async function load(slug){
