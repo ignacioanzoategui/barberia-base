@@ -381,7 +381,7 @@ function attachBookingListener(){
   window.bookingPrivateListenerRef.on("value",refresh);
 }
 
-function renderDash(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="head"><div><div class="k">Panel del negocio</div><div class="title">${esc(B.name)}</div><p class="muted">${esc(B.email||"")}</p></div><div class="actions"><button class="btn" onclick="location.href='index.html?negocio=${B.slug}'">Ver página de clientes</button><button class="btn" onclick="auth.signOut()">Cerrar sesión</button></div></div><div class="stats"><div class="stat a"><small>Turnos de la fecha</small><strong id="s1">0</strong></div><div class="stat"><small>Clientes de la fecha</small><strong id="s2">0</strong></div><div class="stat"><small>Ingresos de la fecha</small><strong id="s3">$ 0</strong></div><div class="stat"><small>Cancelados de la fecha</small><strong id="s4">0</strong></div></div><div class="tabs"><button class="btn tab active" onclick="show('agenda',this)">Agenda</button><button class="btn tab" onclick="show('stats',this)">Estadísticas</button><button class="btn tab" onclick="show('hours',this)">Horarios</button><button class="btn tab" onclick="show('days',this)">Días no laborables</button><button class="btn tab" onclick="show('pros',this)">Profesionales</button><button class="btn tab" onclick="show('branches',this)">Sucursales</button><button class="btn tab" onclick="show('services',this)">Servicios</button><button class="btn tab" onclick="show('link',this)">Mi link</button></div>
+function renderDash(){document.getElementById("app").innerHTML=`<section class="wrap"><div class="head"><div><div class="k">Panel del negocio</div><div class="title">${esc(B.name)}</div><p class="muted">${esc(B.email||"")}</p></div><div class="actions"><button class="btn" onclick="location.href='index.html?negocio=${B.slug}'">Ver página de clientes</button><button class="btn" onclick="auth.signOut()">Cerrar sesión</button></div></div><div class="stats"><div class="stat a"><small>Turnos de la fecha</small><strong id="s1">0</strong></div><div class="stat"><small>Clientes de la fecha</small><strong id="s2">0</strong></div><div class="stat"><small>Ingresos de la fecha</small><strong id="s3">$ 0</strong></div><div class="stat"><small>Cancelados de la fecha</small><strong id="s4">0</strong></div></div><div class="tabs"><button class="btn tab active" onclick="show('agenda',this)">Agenda</button><button class="btn tab" onclick="show('stats',this)">Estadísticas</button><button class="btn tab" onclick="show('hours',this)">Horarios</button><button class="btn tab" onclick="show('days',this)">Días no laborables</button><button class="btn tab" onclick="show('pros',this)">Profesionales</button><button class="btn tab" onclick="show('branches',this)">Sucursales</button><button class="btn tab" onclick="show('services',this)">Servicios</button><button class="btn tab" onclick="show('link',this)">Mi link</button><button class="btn tab" onclick="show('profile',this)">Perfil</button></div>
 <div id="agenda" class="panel active card"><div class="k">Recepción</div><div class="title" style="font-size:20px">Cuadro de turnos</div><p class="muted">Vas a ver períodos disponibles y turnos con hora de inicio y fin reales.</p><div class="controls"><div class="field"><label>Sucursal</label><select id="ab" onchange="prosFilter();agendaGrid()">${branchOptions()}</select></div><div class="field"><label>Profesional</label><select id="ap" onchange="agendaGrid()"></select></div><div>
   <label style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--m);font-weight:900;margin-bottom:7px">Fecha</label>
   <div class="date-control">
@@ -392,6 +392,24 @@ function renderDash(){document.getElementById("app").innerHTML=`<section class="
   <button class="btn today-btn" onclick="setAgendaToday()">Hoy</button>
   <div id="agenda-date-label" class="agenda-date-label"></div>
 </div></div><div id="ag"></div></div>
+<div id="profile" class="panel card">
+<div class="title" style="font-size:20px">Perfil del negocio</div>
+<p class="muted">Personalizá la portada que ven tus clientes.</p>
+<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:18px">
+  <div style="width:105px;height:105px;border:1px solid var(--a);border-radius:22px;display:grid;place-items:center;overflow:hidden;background:#151515;font-size:38px;font-weight:900;color:var(--a)">
+    ${B.logoData?`<img src="${esc(B.logoData)}" alt="Logo" style="width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box">`:esc((B.name||"B").charAt(0).toUpperCase())}
+  </div>
+  <div style="flex:1;min-width:230px">
+    <b>Logo del negocio</b>
+    <p class="muted" style="margin:6px 0 12px">Si cargás un logo, reemplaza la inicial en tu página pública. Si lo quitás, vuelve automáticamente la inicial.</p>
+    <div class="actions">
+      <button class="btn gold" onclick="changeBusinessLogo()">${B.logoData?"Cambiar logo":"Agregar logo"}</button>
+      ${B.logoData?`<button class="btn" onclick="removeBusinessLogo()">Quitar logo</button>`:""}
+    </div>
+    <small class="muted" style="display:block;margin-top:9px">JPG, PNG o WEBP. Se comprime automáticamente. No usa Firebase Storage.</small>
+  </div>
+</div>
+</div>
 <div id="stats" class="panel card"><div class="title" style="font-size:20px">Estadísticas</div><div id="extra" style="margin-top:14px"></div></div>
 <div id="hours" class="panel card"><div class="title" style="font-size:20px">Horario semanal</div><p class="muted">Podés cerrar días o modificar apertura y cierre.</p><div id="week" class="schedule" style="margin-top:14px"></div><button class="btn gold" style="margin-top:14px" onclick="saveWeek()">Guardar horarios</button></div>
 <div id="days" class="panel card"><div class="title" style="font-size:20px">Días no laborables y ausencias</div><div class="grid2"><div><div class="field"><label>Día cerrado</label><input id="cd" type="date" onkeydown="return false" onclick="this.showPicker&&this.showPicker()"></div><div class="field"><label>Motivo</label><input id="cr" placeholder="Feriado, vacaciones..."></div><button class="btn gold" onclick="closeDay()">Dar de baja el día</button><div id="cl"></div></div><div><div class="field"><label>Profesional ausente</label><select id="xp">${proOptions()}</select></div><div class="field"><label>Fecha</label><input id="xd" type="date" onkeydown="return false" onclick="this.showPicker&&this.showPicker()"></div><div class="field"><label>Motivo / aviso</label><input id="xr"></div><button class="btn gold" onclick="absence()">Marcar ausencia</button><div id="xl"></div></div></div></div>
@@ -734,6 +752,39 @@ async function editBranch(id){const b=B.branches?.[id];if(!b)return;const n=prom
 async function deleteBranch(id){const b=B.branches?.[id];if(!b)return;const assigned=Object.values(B.professionals||{}).some(p=>p.branchId===id);if(assigned)return alert("Primero mové o eliminá los profesionales de esta sucursal.");if(!confirm(`¿Eliminar la sucursal "${b.name}"?`))return;await db.ref(`negocios/${B.id}/branches/${id}`).remove();await refreshAndSync();await dashboard()}
 
 
+
+async function prepareBusinessLogo(file){
+  if(!file)return null;
+  if(!file.type.startsWith("image/"))throw new Error("Elegí una imagen válida.");
+  if(file.size>8*1024*1024)throw new Error("La imagen original es demasiado pesada. Máximo 8 MB.");
+  let bitmap;
+  try{bitmap=await createImageBitmap(file)}catch(e){throw new Error("No se pudo leer esa imagen. Probá con JPG, PNG o WEBP.")}
+  const maxSide=500;
+  let w=bitmap.width,h=bitmap.height,scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+  w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
+  const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext("2d");ctx.clearRect(0,0,w,h);ctx.drawImage(bitmap,0,0,w,h);bitmap.close?.();
+  const mime=file.type==="image/png"?"image/png":"image/jpeg";
+  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("No se pudo procesar el logo.")),mime,mime==="image/jpeg"?0.78:undefined));
+  const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result||""));r.onerror=()=>reject(new Error("No se pudo convertir el logo."));r.readAsDataURL(blob)});
+  if(data.length>260000)throw new Error("El logo sigue siendo demasiado pesado. Probá con una imagen más chica o JPG.");
+  return data;
+}
+async function changeBusinessLogo(){
+  const input=document.createElement("input");input.type="file";input.accept="image/jpeg,image/png,image/webp";
+  input.onchange=async()=>{const file=input.files?.[0];if(!file)return;try{
+    const logoData=await prepareBusinessLogo(file);
+    await db.ref(`negocios/${B.id}/logoData`).set(logoData);
+    await refreshAndSync();await dashboard();
+  }catch(e){alert(e.message||"No se pudo guardar el logo.")}};
+  input.click();
+}
+async function removeBusinessLogo(){
+  if(!B?.logoData)return;
+  if(!confirm("¿Quitar el logo del negocio? Se volverá a mostrar la inicial."))return;
+  await db.ref(`negocios/${B.id}/logoData`).remove();
+  await refreshAndSync();await dashboard();
+}
 async function prepareServiceImage(file){
   if(!file)return null;
   if(!file.type.startsWith("image/"))throw new Error("Elegí una imagen válida.");
