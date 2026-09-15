@@ -186,7 +186,7 @@ async function log(){
 }
 
 async function getBusiness(){const u=auth.currentUser;if(!u)return null;const s=await db.ref(`negocios/${u.uid}`).once("value");return s.exists()?{...s.val(),id:u.uid}:null}
-function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{},professionalSchedules:o.professionalSchedules||{},professionalBreaks:o.professionalBreaks||{}}}
+function publicPayload(uid,o){return{ownerUid:uid,name:o.name||"",phone:o.phone||"",description:o.description||"",logoData:o.logoData||null,branches:o.branches||{},professionals:o.professionals||{},services:o.services||{},workTimes:o.workTimes||defs,weeklyHours:o.weeklyHours||{},closedDates:o.closedDates||{},professionalAbsences:o.professionalAbsences||{},professionalSchedules:o.professionalSchedules||{},professionalBreaks:o.professionalBreaks||{}}}
 async function syncPublic(uid,obj){await db.ref(`publicProfiles/${obj.slug}`).set(publicPayload(uid,obj))}
 async function refreshAndSync(){B=await getBusiness();if(B){try{await syncPublic(B.id,B)}catch(e){console.warn("sync public:",e)}}}
 
